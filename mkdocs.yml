@@ -1,7 +1,56 @@
-site_name: Minha Documentação
+site_name: Compiladores 
+repo_name: "compiladores"
+repo_url: "https://github.com/Beatriz-ge/Compiladores-Grupo11"
 
 theme:
   name: material
+  language: "pt"
+  features:
+    - navigation.tabs
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      primary: red
+      toggle:
+        icon: material/brightness-7
+        name: Alterar para o modo escuro
+      accent: white
+
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: red
+      toggle:
+        icon: material/brightness-4
+        name: Alterar para o modo claro
 
 nav:
   - Home: index.md
+
+  - Sobre:
+      - Escopo: sobre/escopo.md
+      - Objetivos: sobre/objetivos.md
+
+  - Arquitetura:
+      - Visão Geral: arquitetura/visao-geral.md
+      - Léxico: arquitetura/lexico.md
+      - Sintático: arquitetura/sintatico.md
+      - Semântico: arquitetura/semantico.md
+      - Código: arquitetura/codigo.md
+
+  - Planejamento:
+      - Backlog: planejamento/backlog.md
+      - Sprints: planejamento/sprints.md
+
+  - Evolução:
+      - P1: evolucao/p1.md
+      - P2: evolucao/p2.md
+
+  - Testes:
+      - Testes: testes/testes.md
+      - Problemas: testes/problemas.md
+
+  - Documentação:
+      - Estrutura: documentacao/estrutura.md
+      - Execução: documentacao/execucao.md
+
+  - Demo:
+      - Demo: demo/demo.md
