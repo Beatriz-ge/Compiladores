@@ -1,16 +1,16 @@
-# 🎯 Objetivos do Projeto
+# Objetivos do Projeto
 
 Desenvolver um compilador acadêmico capaz de traduzir código em C para Python, aplicando na prática os conceitos fundamentais da disciplina de Compiladores.
 
 ---
 
-## 🏆 Objetivo Geral
+## Objetivo Geral
 
 Construir um sistema que percorra todas as etapas do processo de compilação, desde a leitura do código fonte até a geração de código equivalente em outra linguagem.
 
 ---
 
-## 📌 Objetivos Específicos
+## Objetivos Específicos
 
 <div style="display: flex; justify-content: center;">
 
@@ -23,23 +23,23 @@ Construir um sistema que percorra todas as etapas do processo de compilação, d
   </thead>
   <tbody>
     <tr>
-      <td>🔍 Análise Léxica</td>
+      <td> Análise Léxica</td>
       <td>Implementar um analisador capaz de identificar tokens a partir do código fonte em C</td>
     </tr>
     <tr>
-      <td>🧩 Análise Sintática</td>
+      <td> Análise Sintática</td>
       <td>Validar a estrutura do programa utilizando uma gramática definida</td>
     </tr>
     <tr>
-      <td>🧠 Análise Semântica</td>
+      <td Análise Semântica</td>
       <td>Verificar tipos, escopo e consistência das declarações</td>
     </tr>
     <tr>
-      <td>⚙️ Geração de Código</td>
+      <td> Geração de Código</td>
       <td>Converter estruturas da linguagem C para Python</td>
     </tr>
     <tr>
-      <td>🧪 Testes</td>
+      <td> Testes</td>
       <td>Garantir o funcionamento correto por meio de casos de teste</td>
     </tr>
   </tbody>
@@ -49,7 +49,7 @@ Construir um sistema que percorra todas as etapas do processo de compilação, d
 
 ---
 
-## 🚀 Objetivos Acadêmicos
+##  Objetivos Acadêmicos
 
 - Consolidar o entendimento sobre compiladores  
 - Aplicar conceitos teóricos na prática  
@@ -58,13 +58,19 @@ Construir um sistema que percorra todas as etapas do processo de compilação, d
 
 ---
 
-## 📈 Resultados Esperados
+## Resultados Esperados
 
-✔️ Um compilador funcional (mesmo que parcial)  
-✔️ Tradução correta de estruturas básicas de C para Python  
-✔️ Documentação clara e organizada  
-✔️ Aplicação prática dos conceitos da disciplina  
+Um compilador funcional (mesmo que parcial)  
+Tradução correta de estruturas básicas de C para Python  
+Documentação clara e organizada  
+Aplicação prática dos conceitos da disciplina  
 
 ---
 
-<center> Autora: Beatriz Lins </center>
+
+## Histórico de Versões
+
+| Versão |  Data  |  Descrição  |  Autor(es)  |
+| :----: | :--------: | :------------------: | :----------------------------------------------------------------------------------------: | 
+|  `1.0` | 07/04/2025 | Criação do documento |[Beatriz Lins](https://github.com/Beatriz-ge) | 
+

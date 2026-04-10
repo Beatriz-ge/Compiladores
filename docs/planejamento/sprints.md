@@ -1,34 +1,34 @@
-# 🏃‍♂️ Planejamento das Sprints
+# Planejamento das Sprints
 
 ## Compilador de C para Python
 
 ---
 
-## 🧠 Visão Geral
+## Visão Geral
 
 Este documento descreve o planejamento das sprints semanais do projeto, seguindo uma abordagem ágil baseada em Scrum.
 
 Cada sprint possui duração de 1 semana e contempla tarefas organizadas por categorias:
 
-* 🧩 Desenvolvimento
-* 🧪 Testes
-* 📚 Documentação
-* ⚙️ Infraestrutura
-* 🔍 Validação
+*  Desenvolvimento
+*  Testes
+*  Documentação
+*  Infraestrutura
+*  Validação
 
 ---
 
-## 🎨 Protótipo Visual (Figma)
+##  Protótipo Visual (Figma)
 
 Para visualizar o planejamento de forma mais interativa e visual:
 
-👉 **Acesse o board no Figma:**
+**Acesse o board no Figma:**
 
 <iframe style="border: 1px solid rgba(0, 0, 0, 0.1);" width="800" height="450" src="https://embed.figma.com/board/WV0Vbxww4bzvufeUuGunbV/ROADMAP-COMPILADORES?node-id=0-1&embed-host=share" allowfullscreen></iframe>
 
 ---
 
-# 🎯 Resultado Esperado
+#  Resultado Esperado
 
 Ao final das sprints, o projeto deverá:
 
@@ -38,4 +38,9 @@ Ao final das sprints, o projeto deverá:
 
 ---
 
-<center> Autora: Beatriz Lins </center>
+## Histórico de Versões
+
+| Versão |  Data  |  Descrição  |  Autor(es)  |
+| :----: | :--------: | :------------------: | :----------------------------------------------------------------------------------------: | 
+|  `1.0` | 07/04/2025 | Criação do documento |[Beatriz Lins](https://github.com/Beatriz-ge) | 
+

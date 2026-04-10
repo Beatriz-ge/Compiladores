@@ -1,4 +1,4 @@
-# 💻 Compiladores - Grupo 11
+# Compiladores - Grupo 11
 
 Bem-vindo à documentação do projeto de **Compiladores**.
 
@@ -6,20 +6,20 @@ Este projeto tem como objetivo desenvolver um compilador completo, abordando tod
 
 ---
 
-## 📌 Sobre o Projeto
+## Sobre o Projeto
 
 O compilador é uma ferramenta responsável por traduzir código escrito em uma linguagem de alto nível para uma forma executável ou intermediária.
 
 Neste projeto, implementamos:
 
-- 🔍 Análise Léxica
-- 🧩 Análise Sintática
-- 🧠 Análise Semântica
-- ⚙️ Geração de Código
+-  Análise Léxica
+-  Análise Sintática
+-  Análise Semântica
+-  Geração de Código
 
 ---
 
-## 🏗️ Estrutura da Documentação
+## Estrutura da Documentação
 
 A documentação está organizada nas seguintes seções:
 
@@ -34,7 +34,7 @@ A documentação está organizada nas seguintes seções:
 ---
 
 
-## 🧠 Membros da Equipe 
+##  Membros da Equipe 
 
 
 | [![](https://avatars.githubusercontent.com/u/90862900?v=4)](https://github.com/arthurfernandesj) | [![](https://avatars.githubusercontent.com/u/129804255?v=4)](https://github.com/Beatriz-ge) | [![](https://avatars.githubusercontent.com/u/165945167?v=4)](https://github.com/BeatrizSants) | [![](https://avatars.githubusercontent.com/u/164348330?v=4)](https://github.com/dudaa28) | [![](https://avatars.githubusercontent.com/u/185298426?v=4)](https://github.com/isabellachoukaira) |

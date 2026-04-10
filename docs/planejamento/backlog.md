@@ -1,10 +1,10 @@
-# 📦 Backlog do Projeto
+# Backlog do Projeto
 
 ## Compilador de C para Python
 
 ---
 
-## 🗂️ Estrutura
+## Estrutura
 
 <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
 
@@ -138,7 +138,7 @@ Preparar demonstração
 
 ---
 
-## 📊 Resultado Esperado
+## Resultado Esperado
 
 <div style="background-color: #e8f5e9; padding: 15px; border-radius: 10px;">
 
@@ -150,5 +150,9 @@ Preparar demonstração
 </div>
 
 ---
+## Histórico de Versões
 
-<center> Autora: Beatriz Lins </center>
+| Versão |  Data  |  Descrição  |  Autor(es)  |
+| :----: | :--------: | :------------------: | :----------------------------------------------------------------------------------------: | 
+|  `1.0` | 07/04/2025 | Criação do documento |[Beatriz Lins](https://github.com/Beatriz-ge) | 
+
