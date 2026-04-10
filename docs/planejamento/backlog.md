@@ -155,4 +155,4 @@ Preparar demonstração
 | Versão |  Data  |  Descrição  |  Autor(es)  |
 | :----: | :--------: | :------------------: | :----------------------------------------------------------------------------------------: | 
 |  `1.0` | 07/04/2025 | Criação do documento |[Beatriz Lins](https://github.com/Beatriz-ge) | 
-
+|  `1.1` | 09/04/2025 | Refatorando o texto |[Arthur Fernandes](https://github.com/arthurfernandesj) | 
