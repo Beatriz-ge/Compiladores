@@ -1,1 +1,18 @@
+# Ambiente virtual
+venv/
+.env/
+
+# Python
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build
+site/
+
+# VS Code
+.vscode/
+
+# Sistema
+.DS_Store
