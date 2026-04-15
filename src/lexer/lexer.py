@@ -63,6 +63,22 @@ class Lexer:
                 self.advance()
                 return Token(TokenType.SEMICOLON)
 
+            if self.current_char == "(":
+                self.advance()
+                return Token(TokenType.LPAREN)
+
+            if self.current_char == ")":
+                self.advance()
+                return Token(TokenType.RPAREN)
+
+            if self.current_char == "{":
+                self.advance()
+                return Token(TokenType.LBRACE)
+
+            if self.current_char == "}":
+                self.advance()
+                return Token(TokenType.RBRACE)
+
             raise Exception(f"Caractere inválido: {self.current_char}")
 
         return Token(TokenType.EOF)
