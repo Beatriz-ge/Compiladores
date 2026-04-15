@@ -1,5 +1,5 @@
 from lexer.tokens import TokenType
-from ast_nodes.nodes import VarDecl, Return
+from ast_nodes.nodes import VarDecl, Return, Block
 
 
 class Parser:
@@ -37,7 +37,6 @@ class Parser:
 
         value = None
 
-        # pode ser número ou identificador
         if self.current_token.type == TokenType.NUMBER:
             value = self.current_token.value
             self.eat(TokenType.NUMBER)
@@ -52,3 +51,22 @@ class Parser:
         self.eat(TokenType.SEMICOLON)
 
         return Return(value)
+
+    def parse_block(self):
+        self.eat(TokenType.LBRACE)
+
+        statements = []
+
+        while self.current_token.type != TokenType.RBRACE:
+            if self.current_token.type == TokenType.INT:
+                statements.append(self.parse_declaration())
+
+            elif self.current_token.type == TokenType.RETURN:
+                statements.append(self.parse_return())
+
+            else:
+                raise Exception(f"Token inesperado: {self.current_token}")
+
+        self.eat(TokenType.RBRACE)
+
+        return Block(statements)
