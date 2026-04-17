@@ -19,3 +19,10 @@ class Block:
 
     def __repr__(self):
         return f"Block(statements={self.statements})"
+
+class MainNode:
+    def __init__(self, body):
+        self.body = body
+
+    def __repr__(self):
+        return f"MainNode(body={self.body})"
