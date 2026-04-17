@@ -1,5 +1,5 @@
 from lexer.tokens import TokenType
-from ast_nodes.nodes import VarDecl, Return, Block
+from ast_nodes.nodes import VarDecl, Return, Block, MainNode
 
 
 class Parser:
