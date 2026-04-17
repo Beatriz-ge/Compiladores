@@ -19,3 +19,12 @@ class Block:
 
     def __repr__(self):
         return f"Block(statements={self.statements})"
+    
+class BinOp:
+    def __init__(self, left, op, right):
+        self.left = left
+        self.op = op
+        self.right = right
+
+    def __repr__(self):
+        return f"BinOp({self.left} {self.op.type.name} {self.right})"

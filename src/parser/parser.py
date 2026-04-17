@@ -1,5 +1,5 @@
 from lexer.tokens import TokenType
-from ast_nodes.nodes import VarDecl, Return, Block
+from ast_nodes.nodes import VarDecl, Return, Block, BinOp
 
 
 class Parser:
@@ -25,8 +25,7 @@ class Parser:
 
         if self.current_token.type == TokenType.ASSIGN:
             self.eat(TokenType.ASSIGN)
-            value = self.current_token.value
-            self.eat(TokenType.NUMBER)
+            value = self.parse_expression()
 
         self.eat(TokenType.SEMICOLON)
 
@@ -35,18 +34,7 @@ class Parser:
     def parse_return(self):
         self.eat(TokenType.RETURN)
 
-        value = None
-
-        if self.current_token.type == TokenType.NUMBER:
-            value = self.current_token.value
-            self.eat(TokenType.NUMBER)
-
-        elif self.current_token.type == TokenType.IDENTIFIER:
-            value = self.current_token.value
-            self.eat(TokenType.IDENTIFIER)
-
-        else:
-            raise Exception("Erro: return precisa de um valor válido")
+        value = self.parse_expression()
 
         self.eat(TokenType.SEMICOLON)
 
@@ -70,3 +58,28 @@ class Parser:
         self.eat(TokenType.RBRACE)
 
         return Block(statements)
+    
+    def parse_expression(self):
+        left = self.parse_term()
+
+        while self.current_token.type == TokenType.PLUS:
+            op = self.current_token
+            self.eat(TokenType.PLUS)
+            right = self.parse_term()
+            left = BinOp(left, op, right)
+
+        return left
+    
+    def parse_term(self):
+        token = self.current_token
+
+        if token.type == TokenType.NUMBER:
+            self.eat(TokenType.NUMBER)
+            return token.value
+
+        elif token.type == TokenType.IDENTIFIER:
+            self.eat(TokenType.IDENTIFIER)
+            return token.value
+
+        else:
+            raise Exception(f"Token inesperado: {token}")

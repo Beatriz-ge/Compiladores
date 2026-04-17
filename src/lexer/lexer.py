@@ -79,6 +79,10 @@ class Lexer:
                 self.advance()
                 return Token(TokenType.RBRACE)
 
+            if self.current_char == "+":
+                self.advance()
+                return Token(TokenType.PLUS)
+
             raise Exception(f"Caractere inválido: {self.current_char}")
 
         return Token(TokenType.EOF)
