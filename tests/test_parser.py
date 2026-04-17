@@ -33,12 +33,12 @@ def test_parse_block(self):
         code = "{ int x = 5; return x; }"
         parser = Parser(Lexer(code))
         result = parser.parse_block()
-        # Valida se o bloco foi criado e tem 2 comandos
+
         self.assertEqual(len(result.statements), 2)
 
 def test_parse_main_program(self):
         code = "int main() { return 0; }"
         parser = Parser(Lexer(code))
         result = parser.parse_program()
-        # Valida se a Main foi reconhecida e tem um corpo (Block)
+        
         self.assertIsNotNone(result.body)
