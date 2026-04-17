@@ -70,3 +70,19 @@ class Parser:
         self.eat(TokenType.RBRACE)
 
         return Block(statements)
+
+    # Procure onde terminam as outras funções e cole esta
+    def parse_program(self):
+        """ Regra: Programa -> INT MAIN LPAREN RPAREN Bloco """
+        self.eat(TokenType.INT)
+
+        if self.current_token.value != 'main':
+            raise Exception(f"Erro: Esperado 'main', mas veio '{self.current_token.value}'")
+        self.eat(TokenType.IDENTIFIER)
+
+        # Certifique-se que seu Lexer tem esses tokens
+        self.eat(TokenType.LPAREN)
+        self.eat(TokenType.RPAREN)
+
+        corpo = self.parse_block()
+        return MainNode(corpo) # Usando a classe que você criou no passo 1
