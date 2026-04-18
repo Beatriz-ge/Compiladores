@@ -73,6 +73,20 @@ class Parser:
         return left
     
     def parse_term(self):
+        left = self.parse_factor() 
+
+        while self.current_token.type in (TokenType.MULT, TokenType.DIV):
+            op = self.current_token
+            if op.type == TokenType.MULT:
+                self.eat(TokenType.MULT)
+            else:
+                self.eat(TokenType.DIV)
+            right = self.parse_factor()
+            left = BinOp(left, op, right)
+
+        return left
+    
+    def parse_factor(self):
         token = self.current_token
 
         if token.type == TokenType.NUMBER:

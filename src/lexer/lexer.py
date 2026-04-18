@@ -85,6 +85,12 @@ class Lexer:
             if self.current_char == "-":
                 self.advance()
                 return Token(TokenType.MINUS)
+            if self.current_char == "*":
+                self.advance()
+                return Token(TokenType.MULT)
+            if self.current_char == "/":
+                self.advance()
+                return Token(TokenType.DIV)
 
             raise Exception(f"Caractere inválido: {self.current_char}")
 

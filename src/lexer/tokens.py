@@ -19,6 +19,8 @@ class TokenType(Enum):
 
     PLUS = auto()
     MINUS = auto()
+    MULT = auto()
+    DIV = auto()
 
 
 class Token:
