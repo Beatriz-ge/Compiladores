@@ -1,6 +1,5 @@
 from lexer.tokens import TokenType
-from ast_nodes.nodes import VarDecl, Return, Block, MainNode
-
+from ast_nodes.nodes import VarDecl, Return, Block, MainNode, BinOp
 
 class Parser:
     def __init__(self, lexer):
@@ -25,8 +24,7 @@ class Parser:
 
         if self.current_token.type == TokenType.ASSIGN:
             self.eat(TokenType.ASSIGN)
-            value = self.current_token.value
-            self.eat(TokenType.NUMBER)
+            value = self.parse_expression()
 
         self.eat(TokenType.SEMICOLON)
 
@@ -35,18 +33,7 @@ class Parser:
     def parse_return(self):
         self.eat(TokenType.RETURN)
 
-        value = None
-
-        if self.current_token.type == TokenType.NUMBER:
-            value = self.current_token.value
-            self.eat(TokenType.NUMBER)
-
-        elif self.current_token.type == TokenType.IDENTIFIER:
-            value = self.current_token.value
-            self.eat(TokenType.IDENTIFIER)
-
-        else:
-            raise Exception("Erro: return precisa de um valor válido")
+        value = self.parse_expression()
 
         self.eat(TokenType.SEMICOLON)
 
@@ -70,6 +57,48 @@ class Parser:
         self.eat(TokenType.RBRACE)
 
         return Block(statements)
+    
+    def parse_expression(self):
+        left = self.parse_term()
+
+        while self.current_token.type in (TokenType.PLUS, TokenType.MINUS):
+            op = self.current_token
+            if op.type == TokenType.PLUS:
+                self.eat(TokenType.PLUS)
+            else:
+                self.eat(TokenType.MINUS)
+            right = self.parse_term()
+            left = BinOp(left, op, right)
+
+        return left
+    
+    def parse_term(self):
+        left = self.parse_factor() 
+
+        while self.current_token.type in (TokenType.MULT, TokenType.DIV):
+            op = self.current_token
+            if op.type == TokenType.MULT:
+                self.eat(TokenType.MULT)
+            else:
+                self.eat(TokenType.DIV)
+            right = self.parse_factor()
+            left = BinOp(left, op, right)
+
+        return left
+    
+    def parse_factor(self):
+        token = self.current_token
+
+        if token.type == TokenType.NUMBER:
+            self.eat(TokenType.NUMBER)
+            return token.value
+
+        elif token.type == TokenType.IDENTIFIER:
+            self.eat(TokenType.IDENTIFIER)
+            return token.value
+
+        else:
+            raise Exception(f"Token inesperado: {token}")
 
     def parse_program(self):
         """ Regra: Programa -> INT MAIN LPAREN RPAREN Bloco """

@@ -17,6 +17,11 @@ class TokenType(Enum):
 
     EOF = auto()
 
+    PLUS = auto()
+    MINUS = auto()
+    MULT = auto()
+    DIV = auto()
+
 
 class Token:
     def __init__(self, type, value=None):
