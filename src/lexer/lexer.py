@@ -4,10 +4,22 @@ class Lexer:
     def __init__(self, source):
         self.source = source
         self.pos = 0
+
+        self.line = 1
+        self.column = 1
+
         self.current_char = self.source[self.pos] if source else None
 
+    # Avança para o próximo caractere, atualizando linha e coluna
     def advance(self):
+        if self.current_char == "\n":
+            self.line += 1
+            self.column = 0
+        else:
+            self.column += 1
+
         self.pos += 1
+
         if self.pos < len(self.source):
             self.current_char = self.source[self.pos]
         else:
@@ -17,6 +29,14 @@ class Lexer:
         while self.current_char and self.current_char.isspace():
             self.advance()
 
+    def make_token(self, type, value=None):
+        token = Token(type, value, self.line, self.column)
+
+        if hasattr(self, "debug") and self.debug:
+            print(f"[TOKEN] {token}")
+
+        return token
+
     def number(self):
         result = ""
 
@@ -24,7 +44,7 @@ class Lexer:
             result += self.current_char
             self.advance()
 
-        return Token(TokenType.NUMBER, int(result))
+        return Token(TokenType.NUMBER, int(result), self.line, self.column)
 
     def identifier(self):
         result = ""
@@ -36,11 +56,11 @@ class Lexer:
             self.advance()
 
         if result == "int":
-            return Token(TokenType.INT)
+            return Token(TokenType.INT, None, self.line, self.column)
         elif result == "return":
-            return Token(TokenType.RETURN)
+            return Token(TokenType.RETURN, None, self.line, self.column)
 
-        return Token(TokenType.IDENTIFIER, result)
+        return Token(TokenType.IDENTIFIER, result, self.line, self.column)
 
     def get_next_token(self):
         while self.current_char:
@@ -57,28 +77,28 @@ class Lexer:
 
             if self.current_char == "=":
                 self.advance()
-                return Token(TokenType.ASSIGN)
+                return Token(TokenType.ASSIGN, None, self.line, self.column)
 
             if self.current_char == ";":
                 self.advance()
-                return Token(TokenType.SEMICOLON)
+                return Token(TokenType.SEMICOLON, None, self.line, self.column)
 
             if self.current_char == "(":
                 self.advance()
-                return Token(TokenType.LPAREN)
+                return Token(TokenType.LPAREN, None, self.line, self.column)
 
             if self.current_char == ")":
                 self.advance()
-                return Token(TokenType.RPAREN)
+                return Token(TokenType.RPAREN, None, self.line, self.column)
 
             if self.current_char == "{":
                 self.advance()
-                return Token(TokenType.LBRACE)
+                return Token(TokenType.LBRACE, None, self.line, self.column)
 
             if self.current_char == "}":
                 self.advance()
-                return Token(TokenType.RBRACE)
+                return Token(TokenType.RBRACE, None, self.line, self.column)
 
             raise Exception(f"Caractere inválido: {self.current_char}")
 
-        return Token(TokenType.EOF)
+        return Token(TokenType.EOF, None, self.line, self.column)

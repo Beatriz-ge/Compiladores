@@ -7,6 +7,7 @@ def debug_tokens(code):
     print("\n" + "="*20)
     print(" DEBUG DE TOKENS")
     print("="*20)
+    print("Arquivo do Lexer:", Lexer.__init__.__code__.co_filename)
     
     while True:
         token = lexer.get_next_token()
