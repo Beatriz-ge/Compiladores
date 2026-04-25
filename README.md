@@ -1,65 +1,105 @@
-# Compiladores - Equipe 11: 
+# Compiladores - Equipe 11
 
-# Sobre
+## Sobre
 
-Desenvolvimento de um compilador de C para python como parte da disciplina de Compiladores, na Faculdade de Ciência, Tecnologia e Engenharia (FCTE) da Universidade de Brasília (UnB) pelo grupo 11.
+Este projeto tem como objetivo o desenvolvimento de um compilador para um subconjunto da linguagem C, como parte da disciplina de Compiladores da Faculdade de Ciência, Tecnologia e Engenharia (FCTE) da Universidade de Brasília (UnB).
 
-Utilizamos o repositório para compor nosso projeto final bem como as atividades realizadas na disciplina semanalmente.
+O desenvolvimento está sendo realizado de forma incremental, acompanhando as etapas clássicas de construção de compiladores.
+
+---
 
 ## Visão Geral
 
-Este projeto implementa um compilador para um subconjunto da linguagem C, com os seguintes recursos:
+Atualmente, o projeto implementa as primeiras etapas do compilador:
 
-- **Linguagem de entrada**: Código C com suporte a `int`, `if`, `else`, `while` , `comparacoes` , `operadores aritmeticos` , `operadores logicos ` , `print` , `atribuição` , `declaração de variaveis` , `array` , `return`.
-- **Backend**: Python 3 com a biblioteca [PLY (Python Lex-Yacc)](http://www.dabeaz.com/ply/).
-- **Pipeline completo**: Análise léxica, análise sintática (AST) e interpretação.
-- **Objetivo**: Compreensão prática de compiladores e linguagens formais.
+- **Linguagem de entrada (parcial)**:
+  - `int`
+  - função `main`
+  - declaração de variáveis
+  - atribuição
+  - operações aritméticas (`+`, `-`, `*`, `/`)
+  - `return`
+
+- **Pipeline atual**:
+  - Análise léxica (Lexer)
+  - Análise sintática (Parser)
+  - Construção da AST (Árvore de Sintaxe Abstrata)
+
+- **Tecnologias utilizadas**:
+  - Python (implementação inicial de lexer e parser)
+  - Estrutura modular (lexer, parser, ast_nodes)
+
+---
+
+## Estrutura do Projeto
+
+    src/
+    ├── lexer/        # Análise léxica (tokens e lexer)
+    ├── parser/       # Análise sintática
+    ├── ast_nodes/    # Definição dos nós da AST
+    ├── codegen/      # (em desenvolvimento)
+    └── main.py       # Execução principal
+
+    tests/
+    ├── basico.c      # Arquivo de teste inicial
+    ├── test1.c
+    ├── test2.c
+    └── run_tests.sh  # Script de testes automatizados
+
+---
 
 ## Instalação e Execução
 
 ### Requisitos
 
-- Navegue até a pasta interpretadorPython
-- Python 3.8 ou superior
-- PLY 
+- Python 3.10 ou superior
 
-### Instalando dependências
+### Execução
 
-```bash
-pip install -r requirements.txt
-```
+    cd src
+    python main.py
 
-### Para Rodar o Projeto
+---
 
-```bash
-python main.py testes.c
-```
-### Para Rodar nossa suíte de testes
+## Testes Automatizados
 
-```bash
-python -m unittest test_interpreter.py
-```
-Obs.: Pode haver a quebra de algum teste casa o return não esteja de acordo com a saída planejada, nesse caso deve-se ajustar a saída do teste
+Para executar os testes:
 
-<!--
+    ./tests/run_tests.sh
 
-- Montar os tópicos com a equipe de deploy e testes 
+O script percorre automaticamente todos os arquivos `.c` presentes na pasta `tests/`.
 
-# Instruções para iniciar o site localmente (em ambientes X)
+---
 
-### Dependências
+## Status do Projeto
 
-- Node.js v20.13.1
-- NPM (Node Package Manager)
-- PostgreSQL
-- Ruby
-- Rails
-- Docker
+O projeto encontra-se em desenvolvimento inicial, com foco em:
 
--->
+- Estruturação do lexer
+- Construção do parser
+- Geração da AST
+- Implementação de testes automatizados
 
-## Membros da Equipe 
+### Próximas etapas
 
+- Análise semântica
+- Geração de código
+- Integração com ferramentas como Flex/Bison
+
+---
+
+## Objetivo
+
+Aplicar, na prática, os conceitos fundamentais de compiladores, incluindo:
+
+- Análise léxica
+- Análise sintática
+- Construção de AST
+- Organização de compiladores reais
+
+---
+
+## Membros da Equipe
 
 | [![](https://avatars.githubusercontent.com/u/90862900?v=4)](https://github.com/arthurfernandesj) | [![](https://avatars.githubusercontent.com/u/129804255?v=4)](https://github.com/Beatriz-ge) | [![](https://avatars.githubusercontent.com/u/165945167?v=4)](https://github.com/BeatrizSants) | [![](https://avatars.githubusercontent.com/u/164348330?v=4)](https://github.com/dudaa28) | [![](https://avatars.githubusercontent.com/u/185298426?v=4)](https://github.com/isabellachoukaira) |
 |:-:|:-:|:-:|:-:|:-:|
