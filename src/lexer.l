@@ -19,10 +19,16 @@ NUM         {DIGITO}+(\.{DIGITO}+)?
 [ \t\r]+    
 \n          
 
-"//".* 
+"//".* { /* ignora comentário */ }
 
+/* Tipos e Palavras Reservadas */
 "int"       { return INT; }
 "float"     { return FLOAT; }
+"char"      { return CHAR; }
+
+/* Operadores e Pontuação */
+";"         { return PONTO_VIRGULA; }
+"/"         { return DIV; }
 
 {NUM}       { 
                 yylval.val = atof(yytext); 
