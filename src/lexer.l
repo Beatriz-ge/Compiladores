@@ -6,6 +6,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "parser.tab.h" 
 %}
 
@@ -29,6 +30,11 @@ NUM         {DIGITO}+(\.{DIGITO}+)?
 /* Operadores e Pontuação */
 ";"         { return PONTO_VIRGULA; }
 "/"         { return DIV; }
+
+"="         { return ATRIB; }
+"+"         { return SOMA; }
+"-"         { return SUB; }
+"*"         { return MULT; }
 
 {NUM}       { 
                 yylval.val = atof(yytext); 
