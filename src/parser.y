@@ -46,5 +46,8 @@ expressao:
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Erro sintático: %s\n", s);
+    extern int yylineno;
+    extern char *yytext;
+    fprintf(stderr, "\n[LINHA %d] Erro sintatico: %s (perto de '%s')\n", yylineno, s, yytext);
 }
+
