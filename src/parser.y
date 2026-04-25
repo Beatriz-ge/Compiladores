@@ -1,9 +1,3 @@
-%token INT FLOAT CHAR
-%token PONTO_VIRGULA DIV ATRIB SOMA SUB MULT
-%token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE
-%token <val> NUM
-%token <str> ID
-
 %{
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +13,9 @@ int yylex();
 }
 
 /* Tokens */
-%token INT FLOAT
+%token INT FLOAT CHAR 
+%token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE
+%token PONTO_VIRGULA ATRIB DIV SOMA SUB MULT
 %token <val> NUM
 %token <str> ID
 
