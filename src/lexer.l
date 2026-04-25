@@ -22,6 +22,12 @@ NUM         {DIGITO}+(\.{DIGITO}+)?
 
 "//".* { /* ignora comentário */ }
 
+"main"      { return MAIN; }
+"("         { return APARENTESE; }
+")"         { return FPARENTESE; }
+"{"         { return ACHAVE; }
+"}"         { return FCHAVE; }
+
 /* Tipos e Palavras Reservadas */
 "int"       { return INT; }
 "float"     { return FLOAT; }
