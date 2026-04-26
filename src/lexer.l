@@ -15,6 +15,8 @@ LETRA       [a-zA-Z_]
 ID          {LETRA}({LETRA}|{DIGITO})*
 NUM         {DIGITO}+(\.{DIGITO}+)?
 
+ESCAPE      \\.
+
 %%
 
 [ \t\r]+    { /* ignora */ }
@@ -27,6 +29,16 @@ NUM         {DIGITO}+(\.{DIGITO}+)?
 ")"         { return FPARENTESE; }
 "{"         { return ACHAVE; }
 "}"         { return FCHAVE; }
+
+\"([^\"\\\n]|{ESCAPE})*\" {
+    int len = strlen(yytext) - 2;
+    yylval.str = (char*) malloc(len + 1);
+
+    memcpy(yylval.str, yytext + 1, len);
+    yylval.str[len] = '\0';
+
+    return STR_LITERAL;
+}
 
 "int"       { return INT; }
 "float"     { return FLOAT; }
