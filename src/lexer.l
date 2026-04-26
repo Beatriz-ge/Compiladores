@@ -32,8 +32,8 @@ NUM         {DIGITO}+(\.{DIGITO}+)?
 "float"     { return FLOAT; }
 "char"      { return CHAR; }
 
-"+="        { return MAIS_ATRIB; }
-"-="        { return MENOS_ATRIB; }
+"+="        { return SOMA_ATRIB; }
+"-="        { return SUB_ATRIB; }
 "*="        { return MULT_ATRIB; }
 "/="        { return DIV_ATRIB; }
 "%="        { return MOD_ATRIB; }
