@@ -32,6 +32,12 @@ NUM         {DIGITO}+(\.{DIGITO}+)?
 "float"     { return FLOAT; }
 "char"      { return CHAR; }
 
+"+="        { return MAIS_ATRIB; }
+"-="        { return MENOS_ATRIB; }
+"*="        { return MULT_ATRIB; }
+"/="        { return DIV_ATRIB; }
+"%="        { return MOD_ATRIB; }
+
 ";"         { return PONTO_VIRGULA; }
 "/"         { return DIV; }
 "="         { return ATRIB; }
