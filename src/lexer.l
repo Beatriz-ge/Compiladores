@@ -38,6 +38,7 @@ NUM         {DIGITO}+(\.{DIGITO}+)?
 "+"         { return SOMA; }
 "-"         { return SUB; }
 "*"         { return MULT; }
+"%"         { return MOD; }
 
 {NUM}       { 
                 yylval.val = atof(yytext); 
