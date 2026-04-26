@@ -32,12 +32,19 @@ NUM         {DIGITO}+(\.{DIGITO}+)?
 "float"     { return FLOAT; }
 "char"      { return CHAR; }
 
+"+="        { return SOMA_ATRIB; }
+"-="        { return SUB_ATRIB; }
+"*="        { return MULT_ATRIB; }
+"/="        { return DIV_ATRIB; }
+"%="        { return MOD_ATRIB; }
+
 ";"         { return PONTO_VIRGULA; }
 "/"         { return DIV; }
 "="         { return ATRIB; }
 "+"         { return SOMA; }
 "-"         { return SUB; }
 "*"         { return MULT; }
+"%"         { return MOD; }
 
 {NUM}       { 
                 yylval.val = atof(yytext); 
