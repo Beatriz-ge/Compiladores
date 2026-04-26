@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "parser.tab.h" 
+#include "parser.tab.h"
 %}
 
 DIGITO      [0-9]
@@ -17,20 +17,23 @@ NUM         {DIGITO}+(\.{DIGITO}+)?
 
 %%
 
-[ \t\r]+    
-\n          
+[ \t\r]+    { /* ignora */ }
+\n          { /* ignora */ }
 
 "//".* { /* ignora comentário */ }
 
-/* Tipos e Palavras Reservadas */
+"main"      { return MAIN; }
+"("         { return APARENTESE; }
+")"         { return FPARENTESE; }
+"{"         { return ACHAVE; }
+"}"         { return FCHAVE; }
+
 "int"       { return INT; }
 "float"     { return FLOAT; }
 "char"      { return CHAR; }
 
-/* Operadores e Pontuação */
 ";"         { return PONTO_VIRGULA; }
 "/"         { return DIV; }
-
 "="         { return ATRIB; }
 "+"         { return SOMA; }
 "-"         { return SUB; }
@@ -47,7 +50,7 @@ NUM         {DIGITO}+(\.{DIGITO}+)?
             }
 
 .           { 
-                fprintf(stderr, "Erro Léxico na linha %d: caractere '%s' inválido\n", yylineno, yytext); 
+                fprintf(stderr, "Erro Lexico na linha %d: caractere '%s' invalido\n", yylineno, yytext); 
             }
 
 %%
