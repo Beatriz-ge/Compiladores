@@ -42,6 +42,10 @@ ESCAPE      \\.
     printf("[CHAR_LITERAL] -> %s\n", yytext);
 }
 
+\'([^\'\\]|{ESCAPE})?\n {
+    fprintf(stderr, "[ERRO linha %d] char nao fechado\n", yylineno);
+}
+
 \'([^\'\\]|{ESCAPE})+\' {
     printf("[ERRO linha %d] char invalido (mais de um caractere)\n", yylineno);
 }
