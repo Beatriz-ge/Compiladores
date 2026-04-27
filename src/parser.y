@@ -10,6 +10,7 @@ int yylex();
 %union {
     float val;
     char* str;
+    char  ch;
 }
 
 /* Tokens */
@@ -18,6 +19,7 @@ int yylex();
 %token PONTO_VIRGULA ATRIB DIV SOMA SUB MULT MOD
 %token SOMA_ATRIB SUB_ATRIB MULT_ATRIB DIV_ATRIB MOD_ATRIB
 %token <str>  STR_LITERAL
+%token <ch>   CHAR_LITERAL
 %token <val> NUM
 %token <str> ID
 
