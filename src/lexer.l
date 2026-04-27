@@ -44,6 +44,27 @@ ESCAPE      \\.
     fprintf(stderr, "Erro Lexico na linha %d: string nao fechada\n", yylineno);
 }
 
+\'([^\'\\]|{ESCAPE})\' {
+    if (yytext[1] == '\\') {
+        switch (yytext[2]) {
+            case 'n':  yylval.ch = '\n'; break;
+            case 't':  yylval.ch = '\t'; break;
+            case 'r':  yylval.ch = '\r'; break;
+            case '\\': yylval.ch = '\\'; break;
+            case '\'': yylval.ch = '\''; break;
+            case '0':  yylval.ch = '\0'; break;
+            default:   yylval.ch = yytext[2]; break;
+        }
+    } else {
+        yylval.ch = yytext[1];
+    }
+    return CHAR_LITERAL;
+}
+
+\'([^\'\\]|{ESCAPE})+\' {
+    fprintf(stderr, "Erro Lexico na linha %d: char invalido (mais de um caractere)\n", yylineno);
+}
+
 "int"       { return INT; }
 "float"     { return FLOAT; }
 "char"      { return CHAR; }
