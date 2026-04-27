@@ -19,16 +19,29 @@ ESCAPE      \\.
 
 %%
 
-[ \t\r]+    { /* ignora */ }
-\n          { /* ignora */ }
+[ \t\r]+    { }
+\n          { }
 
-"//".* { /* ignora comentário */ }
+"//".*      { }
 
 "main"      { return MAIN; }
+"int"       { return INT; }
+"float"     { return FLOAT; }
+"char"      { return CHAR; }
+
+"if"        { return IF; }
+"else"      { return ELSE; }
+"switch"    { return SWITCH; }
+"case"      { return CASE; }
+"default"   { return DEFAULT; }
+"return"    { return RETURN; }
+
 "("         { return APARENTESE; }
 ")"         { return FPARENTESE; }
 "{"         { return ACHAVE; }
 "}"         { return FCHAVE; }
+";"         { return PONTO_VIRGULA; }
+":"         { return DOIS_PONTOS; }
 
 \"([^\"\\\n]|{ESCAPE})*\" {
     int len = strlen(yytext) - 2;
@@ -79,7 +92,6 @@ ESCAPE      \\.
 "/="        { return DIV_ATRIB; }
 "%="        { return MOD_ATRIB; }
 
-";"         { return PONTO_VIRGULA; }
 "/"         { return DIV; }
 "="         { return ATRIB; }
 "+"         { return SOMA; }
@@ -87,18 +99,12 @@ ESCAPE      \\.
 "*"         { return MULT; }
 "%"         { return MOD; }
 
-{NUM}       { 
-                yylval.val = atof(yytext); 
-                return NUM; 
-            }
+{NUM}       { yylval.val = atof(yytext); return NUM; }
+{ID}        { yylval.str = strdup(yytext); return ID; }
 
-{ID}        { 
-                yylval.str = strdup(yytext); 
-                return ID; 
-            }
-
-.           { 
-                fprintf(stderr, "Erro Lexico na linha %d: caractere '%s' invalido\n", yylineno, yytext); 
-            }
+. {
+    fprintf(stderr, "Erro lexico na linha %d: '%s'\n", yylineno, yytext);
+    exit(1);
+}
 
 %%
