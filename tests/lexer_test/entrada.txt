@@ -1,0 +1,35 @@
+// teste de strings
+"hello world"
+"linha1\nlinha2"
+"string aberta
+
+// teste de char
+'a'
+'\n'
+'ab'
+
+// teste de numeros
+42
+3.14
+0.5
+
+// teste de identificadores
+x
+minhaVar
+_temp123
+
+// teste de palavras-chave
+int float char main
+
+// teste de operadores simples
+= + - * / %
+
+// teste de atribuicao composta
++= -= *= /= %=
+
+// teste de delimitadores
+( ) { } ;
+
+// teste misto
+int x = 10;
+x += 3;
