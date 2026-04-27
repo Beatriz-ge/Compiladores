@@ -40,6 +40,14 @@ ESCAPE      \\.
     return STR_LITERAL;
 }
 
+\"([^\"\\\n]|{ESCAPE})*\n {
+    fprintf(stderr, "Erro Lexico na linha %d: string nao fechada\n", yylineno);
+}
+
+\"([^\"\\\n]|{ESCAPE})*$ {
+    fprintf(stderr, "Erro Lexico na linha %d: string nao fechada (EOF)\n", yylineno);
+}
+
 "int"       { return INT; }
 "float"     { return FLOAT; }
 "char"      { return CHAR; }
