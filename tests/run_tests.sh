@@ -4,28 +4,34 @@ echo "===================="
 echo "TESTES AUTOMATIZADOS"
 echo "===================="
 
-make 2>/dev/null
-
-if [ ! -f compilador ]; then
-    echo "Aviso: compilador não gerado (parser ainda não implementado)"
-    echo "Rodando apenas verificação de arquivos..."
-else
-    echo "Compilador pronto"
-fi
-
-echo ""
-
-for file in tests/*.c; do
+echo "=== TESTES VALIDOS ==="
+for file in tests/valido*.c; do
     echo "Testando: $file"
-
-    if [ -f compilador ]; then
-        ./compilador < "$file"
+    
+    ./bin/compilador < "$file" > /dev/null 2>&1
+    
+    if [ $? -eq 0 ]; then
+        echo "PASSOU"
     else
-        echo "(execução ignorada)"
+        echo "FALHOU (deveria passar)"
     fi
-
-    echo "OK"
+    
     echo "--------------------"
 done
 
-echo "Script executado com sucesso"
+echo "=== TESTES INVALIDOS ==="
+for file in tests/erro*.c; do
+    echo "Testando: $file"
+    
+    ./bin/compilador < "$file" > /dev/null 2>&1
+    
+    if [ $? -ne 0 ]; then
+        echo "PASSOU (erro detectado)"
+    else
+        echo "FALHOU (deveria dar erro)"
+    fi
+    
+    echo "--------------------"
+done
+
+echo "TESTES CONCLUÍDOS"

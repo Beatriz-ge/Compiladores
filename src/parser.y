@@ -4,50 +4,101 @@
 
 void yyerror(const char *s);
 int yylex();
+extern int yylineno;
+extern char *yytext;
 %}
 
-/* Tipos semânticos */
 %union {
     float val;
     char* str;
 }
 
-/* Tokens */
-%token INT FLOAT CHAR 
+%token INT FLOAT CHAR
 %token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE
-%token PONTO_VIRGULA ATRIB DIV SOMA SUB MULT
+%token PONTO_VIRGULA ATRIB DIV SOMA SUB MULT MOD
+%token SOMA_ATRIB SUB_ATRIB MULT_ATRIB DIV_ATRIB MOD_ATRIB
+%token IF ELSE SWITCH CASE DEFAULT RETURN
+%token DOIS_PONTOS
+
 %token <val> NUM
 %token <str> ID
 
 %start program
+
 %%
 
-/* Regra 1: O ponto de entrada agora é o main */
+
 program:
-    MAIN APARENTESE FPARENTESE bloco
-    ;
+      MAIN APARENTESE FPARENTESE bloco
+    | INT MAIN APARENTESE FPARENTESE bloco
+;
 
-/* Regra 2: Um bloco é algo entre { } que tem comandos dentro */
+
 bloco:
-    ACHAVE lista_expressoes FCHAVE
-    ;
+    ACHAVE lista_comandos FCHAVE
+;
 
-lista_expressoes:
+lista_comandos:
       /* vazio */
-    | lista_expressoes expressao
-    ;
+    | lista_comandos comando
+;
+
+comando:
+      declaracao
+    | atribuicao
+    | selecao
+    | retorno
+    | bloco
+;
+
+declaracao:
+    INT ID PONTO_VIRGULA
+;
+
+atribuicao:
+      ID ATRIB expressao PONTO_VIRGULA
+    | ID SOMA_ATRIB expressao PONTO_VIRGULA
+    | ID SUB_ATRIB expressao PONTO_VIRGULA
+    | ID MULT_ATRIB expressao PONTO_VIRGULA
+    | ID DIV_ATRIB expressao PONTO_VIRGULA
+    | ID MOD_ATRIB expressao PONTO_VIRGULA
+;
+
+selecao:
+      IF APARENTESE expressao FPARENTESE comando
+    | IF APARENTESE expressao FPARENTESE comando ELSE comando
+    | SWITCH APARENTESE expressao FPARENTESE ACHAVE lista_cases FCHAVE
+;
+
+lista_cases:
+      lista_cases case
+    | case
+;
+
+case:
+      CASE NUM DOIS_PONTOS lista_comandos
+    | DEFAULT DOIS_PONTOS lista_comandos
+;
+
+retorno:
+    RETURN expressao PONTO_VIRGULA
+;
 
 expressao:
-      INT ID PONTO_VIRGULA     { printf("Declarou int\n"); }
-    | ID ATRIB NUM PONTO_VIRGULA { printf("Atribuiu valor\n"); }
-    | bloco                    { /* Aqui permite { { } } */ }
-    ;
+      NUM
+    | ID
+    | expressao SOMA expressao
+    | expressao SUB expressao
+    | expressao MULT expressao
+    | expressao DIV expressao
+    | expressao MOD expressao
+;
 
 %%
 
 void yyerror(const char *s) {
-    extern int yylineno;
-    extern char *yytext;
-    fprintf(stderr, "\n[LINHA %d] Erro sintatico: %s (perto de '%s')\n", yylineno, s, yytext);
+    fprintf(stderr, "Erro sintatico na linha %d perto de '%s'\n", yylineno, yytext);
+    exit(1);
 }
+
 
