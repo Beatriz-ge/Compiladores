@@ -61,6 +61,10 @@ ESCAPE      \\.
     return CHAR_LITERAL;
 }
 
+\'([^\'\\]|{ESCAPE})?\n {
+    fprintf(stderr, "Erro Lexico na linha %d: char nao fechado\n", yylineno);
+}
+
 \'([^\'\\]|{ESCAPE})+\' {
     fprintf(stderr, "Erro Lexico na linha %d: char invalido (mais de um caractere)\n", yylineno);
 }
