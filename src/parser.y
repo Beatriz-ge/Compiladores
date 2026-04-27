@@ -11,6 +11,7 @@ extern char *yytext;
 %union {
     float val;
     char* str;
+    char  ch;
 }
 
 %token INT FLOAT CHAR
@@ -20,6 +21,8 @@ extern char *yytext;
 %token IF ELSE SWITCH CASE DEFAULT RETURN
 %token DOIS_PONTOS
 
+%token <str>  STR_LITERAL
+%token <ch>   CHAR_LITERAL
 %token <val> NUM
 %token <str> ID
 
