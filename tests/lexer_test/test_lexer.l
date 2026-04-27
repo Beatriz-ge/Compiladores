@@ -38,6 +38,14 @@ ESCAPE      \\.
     printf("[ERRO linha %d] string nao fechada\n", yylineno);
 }
 
+\'([^\'\\]|{ESCAPE})\' {
+    printf("[CHAR_LITERAL] -> %s\n", yytext);
+}
+
+\'([^\'\\]|{ESCAPE})+\' {
+    printf("[ERRO linha %d] char invalido (mais de um caractere)\n", yylineno);
+}
+
 "+="    { printf("[SOMA_ATRIB]\n"); }
 "-="    { printf("[SUB_ATRIB]\n"); }
 "*="    { printf("[MULT_ATRIB]\n"); }
