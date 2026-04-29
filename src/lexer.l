@@ -14,15 +14,13 @@ DIGITO      [0-9]
 LETRA       [a-zA-Z_]
 ID          {LETRA}({LETRA}|{DIGITO})*
 NUM         {DIGITO}+(\.{DIGITO}+)?
-
 ESCAPE      \\.
 
 %%
 
-[ \t\r]+    { }
-\n          { }
-
-"//".*      { }
+[ \t\r]+    { /* ignora */ }
+\n          { /* ignora */ }
+"//".* { /* ignora comentário */ }
 
 "main"      { return MAIN; }
 "int"       { return INT; }
