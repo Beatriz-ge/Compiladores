@@ -1,26 +1,32 @@
-site_name: Compiladores 
-repo_name: "compiladores"
-repo_url: "https://github.com/Beatriz-ge/Compiladores"
+site_name: Projeto Compiladores - Grupo 11
+repo_name: "compiladores-g11"
+repo_url: "https://github.com/arthurfernandesj/Compiladores"
 
 theme:
   name: material
-  language: "pt"
+  language: "pt-BR"
   features:
     - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - content.code.copy
+    - content.code.annotate
   palette:
     - media: "(prefers-color-scheme: light)"
-      primary: red
+      scheme: default
+      primary: indigo
+      accent: indigo
       toggle:
         icon: material/brightness-7
-        name: Alterar para o modo escuro
-      accent: white
-
+        name: Modo Escuro
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: red
+      primary: deep purple
+      accent: deep purple
       toggle:
         icon: material/brightness-4
-        name: Alterar para o modo claro
+        name: Modo Claro
 
 nav:
   - Home: index.md
@@ -45,12 +51,19 @@ nav:
       - Ponto de Controle 2: evolucao/p2.md
 
   - Testes:
-      - Testes: testes/testes.md
-      - Problemas: testes/problemas.md
-
+      - Testes: testes/index.md
   - Documentação:
       - Estrutura: documentacao/estrutura.md
       - Execução: documentacao/execucao.md
-
+      
   - Demo:
       - Demo: demo/demo.md
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true

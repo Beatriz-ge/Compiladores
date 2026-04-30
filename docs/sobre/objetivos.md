@@ -1,77 +1,72 @@
 # Objetivos do Projeto
 
-Desenvolver um compilador acadêmico capaz de traduzir código em C para Python, aplicando na prática os conceitos fundamentais da disciplina de Compiladores.
+Desenvolver um compilador acadêmico capaz de traduzir programas escritos em um subconjunto da linguagem C para a linguagem Python, aplicando na prática os principais conceitos relacionados à construção de compiladores.
 
 ---
 
-## Objetivo Geral
+# Objetivo Geral
 
-Construir um sistema que percorra todas as etapas do processo de compilação, desde a leitura do código fonte até a geração de código equivalente em outra linguagem.
-
----
-
-## Objetivos Específicos
-
-<div style="display: flex; justify-content: center;">
-
-<table>
-  <thead>
-    <tr>
-      <th>Categoria</th>
-      <th>Objetivo</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td> Análise Léxica</td>
-      <td>Implementar um analisador capaz de identificar tokens a partir do código fonte em C</td>
-    </tr>
-    <tr>
-      <td> Análise Sintática</td>
-      <td>Validar a estrutura do programa utilizando uma gramática definida</td>
-    </tr>
-    <tr>
-      <td Análise Semântica</td>
-      <td>Verificar tipos, escopo e consistência das declarações</td>
-    </tr>
-    <tr>
-      <td> Geração de Código</td>
-      <td>Converter estruturas da linguagem C para Python</td>
-    </tr>
-    <tr>
-      <td> Testes</td>
-      <td>Garantir o funcionamento correto por meio de casos de teste</td>
-    </tr>
-  </tbody>
-</table>
-
-</div>
+Construir um sistema capaz de executar as principais etapas do processo de compilação, desde a análise do código-fonte até a geração de código equivalente em outra linguagem de programação.
 
 ---
 
-##  Objetivos Acadêmicos
+# Objetivos Específicos
 
-- Consolidar o entendimento sobre compiladores  
-- Aplicar conceitos teóricos na prática  
-- Desenvolver habilidades em análise de linguagens  
-- Trabalhar em equipe no desenvolvimento de software  
-
----
-
-## Resultados Esperados
-
-Um compilador funcional (mesmo que parcial)  
-Tradução correta de estruturas básicas de C para Python  
-Documentação clara e organizada  
-Aplicação prática dos conceitos da disciplina  
+| Categoria | Objetivo |
+|---|---|
+| Análise Léxica | Implementar um analisador léxico responsável pelo reconhecimento e classificação de tokens da linguagem C |
+| Análise Sintática | Desenvolver um analisador sintático baseado em gramática formal para validação estrutural do programa |
+| Análise Semântica | Realizar verificações semânticas relacionadas a tipos, escopo e consistência das declarações |
+| Geração de Código | Traduzir estruturas válidas da linguagem C para código equivalente em Python |
+| Tratamento de Erros | Identificar e reportar erros léxicos, sintáticos e semânticos durante a compilação |
+| Testes | Validar o funcionamento do compilador através de casos de teste automatizados |
 
 ---
 
+# Objetivos Acadêmicos
+
+- Consolidar os conhecimentos teóricos da disciplina de Compiladores
+- Aplicar técnicas de análise e processamento de linguagens
+- Desenvolver experiência prática com ferramentas como Flex e Bison
+- Exercitar conceitos de arquitetura de software e modularização
+- Fortalecer habilidades de desenvolvimento colaborativo em equipe
 
 ---
-## Histórico de Versões
 
-| Versão |  Data  |  Descrição  |  Autor(es)  |
-| :----: | :--------: | :------------------: | :----------------------------------------------------------------------------------------: | 
-|  `1.0` | 07/04/2025 | Criação do documento |[Beatriz Lins](https://github.com/Beatriz-ge) | 
-|  `1.1` | 09/04/2025 | Refatorando o texto |[Arthur Fernandes](https://github.com/arthurfernandesj) | 
+# Resultados Esperados
+
+Ao final do projeto, espera-se obter:
+
+- Um compilador funcional para um subconjunto da linguagem C
+- Tradução correta de estruturas básicas de C para Python
+- Estrutura modular e extensível para evolução futura do compilador
+- Documentação técnica clara e organizada
+- Casos de teste para validação das funcionalidades implementadas
+- Aplicação prática dos conceitos fundamentais de compiladores
+
+---
+
+# Fluxo Esperado do Sistema
+
+```text
+Código em C
+     ↓
+Análise Léxica
+     ↓
+Análise Sintática
+     ↓
+Análise Semântica
+     ↓
+Geração de Código
+     ↓
+Código em Python
+```
+
+---
+
+# Histórico de Versões
+
+| Versão | Data | Descrição | Autor(es) |
+|:--:|:--:|:--|:--|
+| `1.0` | 07/04/2026 | Criação do documento | [Beatriz Lins](https://github.com/Beatriz-ge) |
+| `1.1` | 09/04/2026 | Refatoração do texto e melhorias estruturais | [Arthur Fernandes](https://github.com/arthurfernandesj) |
