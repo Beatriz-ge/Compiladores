@@ -51,7 +51,9 @@ nav:
       - Ponto de Controle 2: evolucao/p2.md
 
   - Testes:
-      - Testes: testes/index.md
+      - Testes: testes/testes.md
+      - Problemas: testes/problemas.md
+      
   - Documentação:
       - Estrutura: documentacao/estrutura.md
       - Execução: documentacao/execucao.md
