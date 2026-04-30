@@ -26,7 +26,6 @@ ESCAPE      \\.
 "int"       { return INT; }
 "float"     { return FLOAT; }
 "char"      { return CHAR; }
-
 "if"        { return IF; }
 "else"      { return ELSE; }
 "switch"    { return SWITCH; }
@@ -44,10 +43,8 @@ ESCAPE      \\.
 \"([^\"\\\n]|{ESCAPE})*\" {
     int len = strlen(yytext) - 2;
     yylval.str = (char*) malloc(len + 1);
-
     memcpy(yylval.str, yytext + 1, len);
     yylval.str[len] = '\0';
-
     return STR_LITERAL;
 }
 
@@ -56,19 +53,24 @@ ESCAPE      \\.
 }
 
 \'([^\'\\]|{ESCAPE})\' {
+    // Como no Python char e string são parecidos, vamos passar como string de 1 char
+    char c;
     if (yytext[1] == '\\') {
         switch (yytext[2]) {
-            case 'n':  yylval.ch = '\n'; break;
-            case 't':  yylval.ch = '\t'; break;
-            case 'r':  yylval.ch = '\r'; break;
-            case '\\': yylval.ch = '\\'; break;
-            case '\'': yylval.ch = '\''; break;
-            case '0':  yylval.ch = '\0'; break;
-            default:   yylval.ch = yytext[2]; break;
+            case 'n':  c = '\n'; break;
+            case 't':  c = '\t'; break;
+            case 'r':  c = '\r'; break;
+            case '\\': c = '\\'; break;
+            case '\'': c = '\''; break;
+            case '0':  c = '\0'; break;
+            default:   c = yytext[2]; break;
         }
     } else {
-        yylval.ch = yytext[1];
+        c = yytext[1];
     }
+    yylval.str = (char*) malloc(2);
+    yylval.str[0] = c;
+    yylval.str[1] = '\0';
     return CHAR_LITERAL;
 }
 
@@ -77,19 +79,14 @@ ESCAPE      \\.
 }
 
 \'([^\'\\]|{ESCAPE})+\' {
-    fprintf(stderr, "Erro Lexico na linha %d: char invalido (mais de um caractere)\n", yylineno);
+    fprintf(stderr, "Erro Lexico na linha %d: char invalido\n", yylineno);
 }
-
-"int"       { return INT; }
-"float"     { return FLOAT; }
-"char"      { return CHAR; }
 
 "+="        { return SOMA_ATRIB; }
 "-="        { return SUB_ATRIB; }
 "*="        { return MULT_ATRIB; }
 "/="        { return DIV_ATRIB; }
 "%="        { return MOD_ATRIB; }
-
 "/"         { return DIV; }
 "="         { return ATRIB; }
 "+"         { return SOMA; }
@@ -97,7 +94,7 @@ ESCAPE      \\.
 "*"         { return MULT; }
 "%"         { return MOD; }
 
-{NUM}       { yylval.val = atof(yytext); return NUM; }
+{NUM}       { yylval.str = strdup(yytext); return NUM; }
 {ID}        { yylval.str = strdup(yytext); return ID; }
 
 . {
