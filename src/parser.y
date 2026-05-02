@@ -51,6 +51,7 @@ void print_indent() {
 program:
       MAIN APARENTESE FPARENTESE bloco
     | INT MAIN APARENTESE FPARENTESE bloco
+    | VOID MAIN APARENTESE FPARENTESE bloco
 ;
 
 bloco:
@@ -80,6 +81,12 @@ tipo:
       INT 
     | FLOAT 
     | CHAR
+    | DOUBLE
+    | VOID
+    | SHORT
+    | LONG
+    | SIGNED
+    | UNSIGNED
 ;
 
 declaracao:
