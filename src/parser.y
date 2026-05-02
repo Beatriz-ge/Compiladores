@@ -78,6 +78,12 @@ comando:
 ;
 
 tipo: 
+      tipo_base
+    | qualificador tipo_base
+    | qualificador
+;
+
+tipo_base:
       INT 
     | FLOAT 
     | CHAR
@@ -85,6 +91,9 @@ tipo:
     | VOID
     | SHORT
     | LONG
+;
+
+qualificador:
     | SIGNED
     | UNSIGNED
 ;
