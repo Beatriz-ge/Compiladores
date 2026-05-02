@@ -34,6 +34,7 @@ void print_indent() {
 %token SOMA_ATRIB SUB_ATRIB MULT_ATRIB DIV_ATRIB MOD_ATRIB
 %token IF SWITCH CASE DEFAULT RETURN
 %token DOIS_PONTOS
+%token DOUBLE SHORT LONG SIGNED UNSIGNED VOID
 
 %token <str> STR_LITERAL
 %token <ch>  CHAR_LITERAL
@@ -50,6 +51,7 @@ void print_indent() {
 program:
       MAIN APARENTESE FPARENTESE bloco
     | INT MAIN APARENTESE FPARENTESE bloco
+    | VOID MAIN APARENTESE FPARENTESE bloco
 ;
 
 bloco:
@@ -76,9 +78,24 @@ comando:
 ;
 
 tipo: 
+      tipo_base
+    | qualificador tipo_base
+    | qualificador
+;
+
+tipo_base:
       INT 
     | FLOAT 
     | CHAR
+    | DOUBLE
+    | VOID
+    | SHORT
+    | LONG
+;
+
+qualificador:
+    | SIGNED
+    | UNSIGNED
 ;
 
 declaracao:

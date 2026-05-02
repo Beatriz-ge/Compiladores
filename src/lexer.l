@@ -26,6 +26,14 @@ ESCAPE      \\.
 "int"       { return INT; }
 "float"     { return FLOAT; }
 "char"      { return CHAR; }
+
+"double"    { return DOUBLE; }
+"short"     { return SHORT; }
+"long"      { return LONG; }
+"signed"    { return SIGNED; }
+"unsigned"  { return UNSIGNED; }
+"void"      { return VOID; }
+
 "if"        { return IF; }
 "else"      { return ELSE; }
 "switch"    { return SWITCH; }
