@@ -30,9 +30,14 @@ void print_indent() {
 
 %token INT FLOAT CHAR
 %token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE
-%token PONTO_VIRGULA ATRIB 
+
+%token PONTO_VIRGULA ATRIB
+%token SOMA SUB MULT DIV MOD
 %token SOMA_ATRIB SUB_ATRIB MULT_ATRIB DIV_ATRIB MOD_ATRIB
+
 %token IF SWITCH CASE DEFAULT RETURN
+%token FOR WHILE DO BREAK CONTINUE
+
 %token DOIS_PONTOS
 %token DOUBLE SHORT LONG SIGNED UNSIGNED VOID
 
@@ -73,19 +78,92 @@ comando:
       declaracao
     | atribuicao
     | selecao
+    | repeticao
+    | salto
     | retorno
     | bloco
 ;
 
-tipo: 
+repeticao:
+      while_stmt
+    | do_while_stmt
+    | for_stmt
+;
+
+while_stmt:
+    WHILE APARENTESE expressao FPARENTESE {
+        print_indent();
+        printf("while %s:\n", $3);
+        indent++;
+    }
+    comando {
+        indent--;
+    }
+;
+
+do_while_stmt:
+    DO {
+        print_indent();
+        printf("while True:\n");
+
+        indent++;
+    }
+    comando
+    WHILE APARENTESE expressao FPARENTESE PONTO_VIRGULA {
+        print_indent();
+        printf("if not (%s):\n", $6);
+
+        indent++;
+
+        print_indent();
+        printf("break\n");
+
+        indent -= 2;
+    }
+;
+
+for_stmt:
+    FOR APARENTESE expressao PONTO_VIRGULA expressao PONTO_VIRGULA expressao FPARENTESE {
+        print_indent();
+        printf("# for traduzido\n");
+
+        print_indent();
+        printf("%s\n", $3);
+
+        print_indent();
+        printf("while %s:\n", $5);
+
+        indent++;
+    }
+    comando {
+        print_indent();
+        printf("%s\n", $7);
+
+        indent--;
+    }
+;
+
+salto:
+      BREAK PONTO_VIRGULA {
+        print_indent();
+        printf("break\n");
+    }
+
+    | CONTINUE PONTO_VIRGULA {
+        print_indent();
+        printf("continue\n");
+    }
+;
+
+tipo:
       tipo_base
     | qualificador tipo_base
     | qualificador
 ;
 
 tipo_base:
-      INT 
-    | FLOAT 
+      INT
+    | FLOAT
     | CHAR
     | DOUBLE
     | VOID
@@ -94,7 +172,7 @@ tipo_base:
 ;
 
 qualificador:
-    | SIGNED
+      SIGNED
     | UNSIGNED
 ;
 
@@ -143,17 +221,18 @@ atribuicao:
 ;
 
 selecao:
-      /* Caso: if sem else */
       if_header comando %prec LOWER_THAN_ELSE {
           indent--;
       }
-      /* Caso: if com else */
+
     | if_header comando ELSE {
-          indent--; 
+          indent--;
+
           print_indent();
           printf("else:\n");
+
           indent++;
-      } 
+      }
       comando {
           indent--;
       }
@@ -163,8 +242,10 @@ if_header:
     IF APARENTESE expressao FPARENTESE {
         print_indent();
         printf("if %s:\n", $3);
+
         indent++;
-    };
+    }
+;
 
 retorno:
     RETURN expressao PONTO_VIRGULA {
@@ -174,30 +255,43 @@ retorno:
 ;
 
 expressao:
-      NUM                { $$ = strdup($1); }
-    | ID                 { $$ = strdup($1); }
+      NUM {
+        $$ = strdup($1);
+    }
+
+    | ID {
+        $$ = strdup($1);
+    }
 
     | CHAR_LITERAL {
         char temp[2];
+
         temp[0] = $1;
         temp[1] = '\0';
+
         $$ = strdup(temp);
     }
 
-    | STR_LITERAL      { $$ = strdup($1); }
+    | STR_LITERAL {
+        $$ = strdup($1);
+    }
 
     | expressao SOMA expressao {
         asprintf(&$$, "%s + %s", $1, $3);
     }
+
     | expressao SUB expressao {
         asprintf(&$$, "%s - %s", $1, $3);
     }
+
     | expressao MULT expressao {
         asprintf(&$$, "%s * %s", $1, $3);
     }
+
     | expressao DIV expressao {
         asprintf(&$$, "%s / %s", $1, $3);
     }
+
     | expressao MOD expressao {
         asprintf(&$$, "%s %% %s", $1, $3);
     }
@@ -210,6 +304,10 @@ expressao:
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Erro sintatico na linha %d perto de '%s'\n", yylineno, yytext);
+    fprintf(stderr,
+            "Erro sintatico na linha %d perto de '%s'\n",
+            yylineno,
+            yytext);
+
     exit(1);
 }

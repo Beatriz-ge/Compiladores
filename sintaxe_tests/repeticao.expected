@@ -1,0 +1,17 @@
+Aguardando entrada (Ctrl+D para finalizar):
+    x = 1
+    while x:
+            x -= 1
+            continue
+    while True:
+            x += 1
+        if not (x):
+            break
+    # for traduzido
+    x
+    while x:
+            break
+        x
+    return 0
+
+[SUCESSO] O código é sintaticamente válido.

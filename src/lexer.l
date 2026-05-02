@@ -36,6 +36,13 @@ ESCAPE      \\.
 
 "if"        { return IF; }
 "else"      { return ELSE; }
+
+"for"       { return FOR; }
+"while"     { return WHILE; }
+"do"        { return DO; }
+"break"     { return BREAK; }
+"continue"  { return CONTINUE; }
+
 "switch"    { return SWITCH; }
 "case"      { return CASE; }
 "default"   { return DEFAULT; }
