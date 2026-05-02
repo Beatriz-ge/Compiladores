@@ -8,7 +8,7 @@ COMPILADOR="./bin/compilador"
 
 echo "Iniciando testes automatizados..."
 
-for test_file in tests/*.c; do
+for test_file in sintaxe_tests/*.c; do
     expected_file="${test_file%.c}.expected"
     
     if [ -f "$expected_file" ]; then
