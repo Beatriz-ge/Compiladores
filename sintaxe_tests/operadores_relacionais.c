@@ -1,0 +1,13 @@
+int main() {
+    int x = 10;
+    int y = 20;
+
+    if (x == y) { return 1; }
+    if (x != y) { return 2; }
+    if (x < y)  { return 3; }
+    if (x > y)  { return 4; }
+    if (x <= y) { return 5; }
+    if (x >= y) { return 6; }
+
+    return 0;
+}
