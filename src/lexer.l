@@ -39,7 +39,13 @@ ESCAPE      \\.
 
 "for"       { return FOR; }
 "while"     { return WHILE; }
-"do" {return DO; }
+"do"        {return DO; }
+
+"struct"    { return STRUCT; }
+"typedef"   { return TYPEDEF; }
+"sizeof"    { return SIZEOF; }
+"const"     { return CONST; }
+"static"    { return STATIC; }
 
 "break"     { return BREAK; }
 "continue"  { return CONTINUE; }
