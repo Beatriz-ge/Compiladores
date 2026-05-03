@@ -43,11 +43,13 @@ void print_indent() {
 
 %token <str> STR_LITERAL
 %token <ch>  CHAR_LITERAL
+%token TK_EQ TK_NE TK_LE TK_GE TK_LT TK_GT
 %token <str> NUM
 %token <str> ID
 
 %left SOMA SUB
 %left MULT DIV MOD
+%left TK_EQ TK_NE TK_LE TK_GE TK_LT TK_GT
 
 %start program
 
@@ -294,6 +296,30 @@ expressao:
 
     | expressao MOD expressao {
         asprintf(&$$, "%s %% %s", $1, $3);
+    }
+
+    | expressao TK_EQ expressao {
+        asprintf(&$$, "%s == %s", $1, $3);
+    }
+
+    | expressao TK_NE expressao {
+        asprintf(&$$, "%s != %s", $1, $3);
+    }
+
+    | expressao TK_LE expressao {
+        asprintf(&$$, "%s <= %s", $1, $3);
+    }
+
+    | expressao TK_GE expressao {
+        asprintf(&$$, "%s >= %s", $1, $3);
+    }
+
+    | expressao TK_LT expressao {
+        asprintf(&$$, "%s < %s", $1, $3);
+    }
+
+    | expressao TK_GT expressao {
+        asprintf(&$$, "%s > %s", $1, $3);
     }
 
     | APARENTESE expressao FPARENTESE {
