@@ -37,12 +37,13 @@ void print_indent() {
 
 %token IF SWITCH CASE DEFAULT RETURN
 %token FOR WHILE DO BREAK CONTINUE
+%token ELSE
 
 %token DOIS_PONTOS
 %token DOUBLE SHORT LONG SIGNED UNSIGNED VOID
 
 %token <str> STR_LITERAL
-%token <ch>  CHAR_LITERAL
+%token <str> CHAR_LITERAL
 %token <str> NUM
 %token <str> ID
 
@@ -263,14 +264,6 @@ expressao:
         $$ = strdup($1);
     }
 
-    | CHAR_LITERAL {
-        char temp[2];
-
-        temp[0] = $1;
-        temp[1] = '\0';
-
-        $$ = strdup(temp);
-    }
 
     | STR_LITERAL {
         $$ = strdup($1);
