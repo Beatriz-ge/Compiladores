@@ -39,12 +39,7 @@ ESCAPE      \\.
 
 "for"       { return FOR; }
 "while"     { return WHILE; }
-"do"        { r
-
-
-
-
-eturn DO; }
+"do"        { return DO; }
 "break"     { return BREAK; }
 "continue"  { return CONTINUE; }
 
