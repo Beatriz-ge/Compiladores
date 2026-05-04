@@ -41,11 +41,13 @@ void print_indent() {
 
 %token DOIS_PONTOS
 %token DOUBLE SHORT LONG SIGNED UNSIGNED VOID
+%token STRUCT TYPEDEF SIZEOF CONST STATIC
 
 %token <str> STR_LITERAL
 %token <str> CHAR_LITERAL
 %token <str> NUM
 %token <str> ID
+
 
 %left SOMA SUB
 %left MULT DIV MOD
@@ -178,7 +180,17 @@ qualificador:
 ;
 
 declaracao:
-      tipo ID PONTO_VIRGULA {
+    modificadores tipo ID PONTO_VIRGULA {
+        print_indent();
+        printf("%s = None\n", $3); 
+    }
+
+    | modificadores tipo ID ATRIB expressao PONTO_VIRGULA {
+        print_indent();
+        printf("%s = %s\n", $3, $5); 
+    }
+
+    | tipo ID PONTO_VIRGULA {
         print_indent();
         printf("%s = None\n", $2);
     }
@@ -187,6 +199,13 @@ declaracao:
         print_indent();
         printf("%s = %s\n", $2, $4);
     }
+;
+
+modificadores:
+      CONST
+    | STATIC
+    | CONST STATIC
+    | STATIC CONST
 ;
 
 atribuicao:
@@ -291,6 +310,14 @@ expressao:
 
     | APARENTESE expressao FPARENTESE {
         asprintf(&$$, "(%s)", $2);
+    }
+
+    | SIZEOF APARENTESE tipo FPARENTESE {
+        asprintf(&$$, "0");
+    }
+
+    | SIZEOF APARENTESE ID FPARENTESE {
+        asprintf(&$$, "0"); 
     }
 ;
 
