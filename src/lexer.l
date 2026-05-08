@@ -98,6 +98,13 @@ ESCAPE      \\.
     fprintf(stderr, "Erro Lexico na linha %d: char invalido\n", yylineno);
 }
 
+"=="        { return TK_EQ; }
+"!="        { return TK_NE; }
+"<="        { return TK_LE; }
+">="        { return TK_GE; }
+"<"         { return TK_LT; }
+">"         { return TK_GT; }
+
 "+="        { return SOMA_ATRIB; }
 "-="        { return SUB_ATRIB; }
 "*="        { return MULT_ATRIB; }
