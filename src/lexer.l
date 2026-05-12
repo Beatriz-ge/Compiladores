@@ -14,7 +14,7 @@ DIGITO      [0-9]
 LETRA       [a-zA-Z_]
 ID          {LETRA}({LETRA}|{DIGITO})*
 NUM         {DIGITO}+(\.{DIGITO}+)?
-ESCAPE      \\.
+ESCAPE      \\[ntr0"'\\]
 
 %%
 
@@ -56,47 +56,52 @@ ESCAPE      \\.
 ";"         { return PONTO_VIRGULA; }
 ":"         { return DOIS_PONTOS; }
 
+\"([^\"\\\n]|\\.)*\n {
+    yylineno--;
+    fprintf(stderr, "Erro Lexico na linha %d: string nao fechada\n", yylineno);
+    exit(1);
+}
+
+\"([^\"\\\n]|{ESCAPE})*\\[^ntr0\"\'\\][^\"\n]*\" {
+
+    fprintf(stderr, "Erro Lexico na linha %d: escape invalido em string\n", yylineno);
+    exit(1);
+}
+
 \"([^\"\\\n]|{ESCAPE})*\" {
-    int len = strlen(yytext) - 2;
-    yylval.str = (char*) malloc(len + 1);
-    memcpy(yylval.str, yytext + 1, len);
-    yylval.str[len] = '\0';
+    int len = strlen(yytext);
+    yylval.str = (char*) malloc(len - 1);
+    memcpy(yylval.str, yytext + 1, len - 2);
+    yylval.str[len - 2] = '\0';
     return STR_LITERAL;
 }
 
-\"([^\"\\\n]|{ESCAPE})*\n {
-    fprintf(stderr, "Erro Lexico na linha %d: string nao fechada\n", yylineno);
+\'([^\'\\]|\\.)?\n {
+    yylineno--;
+    fprintf(stderr, "Erro Lexico na linha %d: char nao fechado\n", yylineno);
+    exit(1);
+}
+
+\'\\[^ntr0\'\\]\' {
+
+    fprintf(stderr, "Erro Lexico na linha %d: escape invalido em char\n", yylineno);
+    exit(1);
 }
 
 \'([^\'\\]|{ESCAPE})\' {
-    // Como no Python char e string são parecidos, vamos passar como string de 1 char
-    char c;
-    if (yytext[1] == '\\') {
-        switch (yytext[2]) {
-            case 'n':  c = '\n'; break;
-            case 't':  c = '\t'; break;
-            case 'r':  c = '\r'; break;
-            case '\\': c = '\\'; break;
-            case '\'': c = '\''; break;
-            case '0':  c = '\0'; break;
-            default:   c = yytext[2]; break;
-        }
-    } else {
-        c = yytext[1];
-    }
-    yylval.str = (char*) malloc(2);
-    yylval.str[0] = c;
-    yylval.str[1] = '\0';
+    int len = strlen(yytext);
+    yylval.str = (char*) malloc(len - 1);
+    memcpy(yylval.str, yytext + 1, len - 2);
+    yylval.str[len - 2] = '\0';
     return CHAR_LITERAL;
 }
 
-\'([^\'\\]|{ESCAPE})?\n {
-    fprintf(stderr, "Erro Lexico na linha %d: char nao fechado\n", yylineno);
+\'([^\'\\]|\\.){2,}\' {
+    fprintf(stderr, "Erro Lexico na linha %d: char invalido\n", yylineno);
+    exit(1);
 }
 
-\'([^\'\\]|{ESCAPE})+\' {
-    fprintf(stderr, "Erro Lexico na linha %d: char invalido\n", yylineno);
-}
+
 
 "=="        { return TK_EQ; }
 "!="        { return TK_NE; }

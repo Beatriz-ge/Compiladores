@@ -19,7 +19,6 @@ void print_indent() {
 
 %union {
     char* str;
-    char  ch;
 }
 
 %type <str> expressao
@@ -43,7 +42,7 @@ void print_indent() {
 %token DOUBLE SHORT LONG SIGNED UNSIGNED VOID
 
 %token <str> STR_LITERAL
-%token <ch>  CHAR_LITERAL
+%token <str>  CHAR_LITERAL
 %token TK_EQ TK_NE TK_LE TK_GE TK_LT TK_GT
 %token <str> NUM
 %token <str> ID
@@ -268,7 +267,11 @@ expressao:
 
 
     | STR_LITERAL {
-        $$ = strdup($1);
+        asprintf(&$$, "\"%s\"", $1);
+    }
+
+    | CHAR_LITERAL {
+        asprintf(&$$, "'%s'", $1);
     }
 
     | expressao SOMA expressao {
