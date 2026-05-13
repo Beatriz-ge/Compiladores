@@ -19,38 +19,30 @@ void print_indent() {
 
 %union {
     char* str;
-    char  ch;
 }
 
-%type <str> expressao
+%type <str> expressao lista_ids
 
-/* Precedência para resolver o "Dangling Else" */
+%token INT FLOAT CHAR DOUBLE VOID
+%token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE A_COLCHETE F_COLCHETE
+%token PONTO_VIRGULA ATRIB VIRGULA DOIS_PONTOS
+%token SOMA_ATRIB SUB_ATRIB MULT_ATRIB DIV_ATRIB MOD_ATRIB
+%token IF ELSE SWITCH CASE DEFAULT RETURN
+%token AND_LOGICO OR_LOGICO INC DEC
+%token TK_EQ TK_NE TK_LE TK_GE TK_LT TK_GT
+
+%token <str> STR_LITERAL CHAR_LITERAL NUM ID
+
+/* Precedência (da menor para a maior) */
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
-
-%token INT FLOAT CHAR
-%token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE
-
-%token PONTO_VIRGULA ATRIB
-%token SOMA SUB MULT DIV MOD
-%token SOMA_ATRIB SUB_ATRIB MULT_ATRIB DIV_ATRIB MOD_ATRIB
-
-%token IF SWITCH CASE DEFAULT RETURN
-%token FOR WHILE DO BREAK CONTINUE
-%token ELSE
-
-%token DOIS_PONTOS
-%token DOUBLE SHORT LONG SIGNED UNSIGNED VOID
-
-%token <str> STR_LITERAL
-%token <ch>  CHAR_LITERAL
-%token TK_EQ TK_NE TK_LE TK_GE TK_LT TK_GT
-%token <str> NUM
-%token <str> ID
-
+%left OR_LOGICO
+%left AND_LOGICO
+%left TK_EQ TK_NE
+%left TK_LT TK_GT TK_LE TK_GE
 %left SOMA SUB
 %left MULT DIV MOD
-%left TK_EQ TK_NE TK_LE TK_GE TK_LT TK_GT
+%right INC DEC 
 
 %start program
 
@@ -59,21 +51,16 @@ void print_indent() {
 program:
       MAIN APARENTESE FPARENTESE bloco
     | INT MAIN APARENTESE FPARENTESE bloco
-    | VOID MAIN APARENTESE FPARENTESE bloco
+    | tipo MAIN APARENTESE FPARENTESE bloco
 ;
 
 bloco:
-    ACHAVE {
-        indent++;
-    }
+    ACHAVE { indent++; }
     lista_comandos
-    FCHAVE {
-        indent--;
-    }
+    FCHAVE { indent--; }
 ;
 
 lista_comandos:
-      /* vazio */
     | lista_comandos comando
 ;
 
@@ -81,110 +68,29 @@ comando:
       declaracao
     | atribuicao
     | selecao
-    | repeticao
-    | salto
     | retorno
     | bloco
+    | expressao PONTO_VIRGULA 
 ;
 
-repeticao:
-      while_stmt
-    | do_while_stmt
-    | for_stmt
+tipo: 
+      INT | FLOAT | CHAR | DOUBLE | VOID
 ;
 
-while_stmt:
-    WHILE APARENTESE expressao FPARENTESE {
+/* Suporte para int a, b, c; */
+lista_ids:
+      ID { 
         print_indent();
-        printf("while %s:\n", $3);
-        indent++;
-    }
-    comando {
-        indent--;
-    }
-;
-
-do_while_stmt:
-    DO {
+        printf("%s = None\n", $1); 
+      }
+    | lista_ids VIRGULA ID { 
         print_indent();
-        printf("while True:\n");
-
-        indent++;
-    }
-    comando
-    WHILE APARENTESE expressao FPARENTESE PONTO_VIRGULA {
-        print_indent();
-        printf("if not (%s):\n", $6);
-
-        indent++;
-
-        print_indent();
-        printf("break\n");
-
-        indent -= 2;
-    }
-;
-
-for_stmt:
-    FOR APARENTESE expressao PONTO_VIRGULA expressao PONTO_VIRGULA expressao FPARENTESE {
-        print_indent();
-        printf("# for traduzido\n");
-
-        print_indent();
-        printf("%s\n", $3);
-
-        print_indent();
-        printf("while %s:\n", $5);
-
-        indent++;
-    }
-    comando {
-        print_indent();
-        printf("%s\n", $7);
-
-        indent--;
-    }
-;
-
-salto:
-      BREAK PONTO_VIRGULA {
-        print_indent();
-        printf("break\n");
-    }
-
-    | CONTINUE PONTO_VIRGULA {
-        print_indent();
-        printf("continue\n");
-    }
-;
-
-tipo:
-      tipo_base
-    | qualificador tipo_base
-    | qualificador
-;
-
-tipo_base:
-      INT
-    | FLOAT
-    | CHAR
-    | DOUBLE
-    | VOID
-    | SHORT
-    | LONG
-;
-
-qualificador:
-      SIGNED
-    | UNSIGNED
+        printf("%s = None\n", $3); 
+      }
 ;
 
 declaracao:
-      tipo ID PONTO_VIRGULA {
-        print_indent();
-        printf("%s = None\n", $2);
-    }
-
+      tipo lista_ids PONTO_VIRGULA 
     | tipo ID ATRIB expressao PONTO_VIRGULA {
         print_indent();
         printf("%s = %s\n", $2, $4);
@@ -196,59 +102,40 @@ atribuicao:
         print_indent();
         printf("%s = %s\n", $1, $3);
     }
-
     | ID SOMA_ATRIB expressao PONTO_VIRGULA {
         print_indent();
         printf("%s += %s\n", $1, $3);
     }
-
-    | ID SUB_ATRIB expressao PONTO_VIRGULA {
+    | ID INC PONTO_VIRGULA {
         print_indent();
-        printf("%s -= %s\n", $1, $3);
+        printf("%s += 1\n", $1);
     }
-
-    | ID MULT_ATRIB expressao PONTO_VIRGULA {
+    | ID DEC PONTO_VIRGULA {
         print_indent();
-        printf("%s *= %s\n", $1, $3);
+        printf("%s -= 1\n", $1);
     }
-
-    | ID DIV_ATRIB expressao PONTO_VIRGULA {
-        print_indent();
-        printf("%s /= %s\n", $1, $3);
-    }
-
-    | ID MOD_ATRIB expressao PONTO_VIRGULA {
-        print_indent();
-        printf("%s %%= %s\n", $1, $3);
-    }
+    | ID SUB_ATRIB expressao PONTO_VIRGULA { print_indent(); printf("%s -= %s\n", $1, $3); }
+    | ID MULT_ATRIB expressao PONTO_VIRGULA { print_indent(); printf("%s *= %s\n", $1, $3); }
+    | ID DIV_ATRIB expressao PONTO_VIRGULA { print_indent(); printf("%s /= %s\n", $1, $3); }
 ;
 
 selecao:
-      if_header comando %prec LOWER_THAN_ELSE {
-          indent--;
-      }
-
+      if_header comando %prec LOWER_THAN_ELSE { indent--; }
     | if_header comando ELSE {
-          indent--;
-
+          indent--; 
           print_indent();
           printf("else:\n");
-
           indent++;
-      }
-      comando {
-          indent--;
-      }
+      } 
+      comando { indent--; }
 ;
 
 if_header:
     IF APARENTESE expressao FPARENTESE {
         print_indent();
         printf("if %s:\n", $3);
-
         indent++;
-    }
-;
+    };
 
 retorno:
     RETURN expressao PONTO_VIRGULA {
@@ -258,75 +145,46 @@ retorno:
 ;
 
 expressao:
-      NUM {
-        $$ = strdup($1);
+      NUM                { $$ = strdup($1); }
+    | ID                 { $$ = strdup($1); }
+    | STR_LITERAL        { asprintf(&$$, "\"%s\"", $1); }
+    | CHAR_LITERAL       { asprintf(&$$, "'%s'", $1); }
+    
+    /* Acesso a Array */
+    | ID A_COLCHETE expressao F_COLCHETE {
+        asprintf(&$$, "%s[%s]", $1, $3);
     }
 
-    | ID {
-        $$ = strdup($1);
-    }
+    /* Operadores Lógicos traduzidos para Python */
+    | expressao AND_LOGICO expressao { asprintf(&$$, "%s and %s", $1, $3); }
+    | expressao OR_LOGICO expressao  { asprintf(&$$, "%s or %s", $1, $3); }
+    
+    /* Operadores Relacionais */
+    | expressao TK_EQ expressao { asprintf(&$$, "%s == %s", $1, $3); }
+    | expressao TK_LT expressao { asprintf(&$$, "%s < %s", $1, $3); }
+    | expressao TK_GT expressao { asprintf(&$$, "%s > %s", $1, $3); }
 
+    /* Aritmética */
+    | expressao SOMA expressao { asprintf(&$$, "%s + %s", $1, $3); }
+    | expressao SUB expressao  { asprintf(&$$, "%s - %s", $1, $3); }
+    | expressao MULT expressao { asprintf(&$$, "%s * %s", $1, $3); }
+    | expressao DIV expressao  { asprintf(&$$, "%s / %s", $1, $3); }
+    
+    /* Unários em Expressões (Tradução aproximada) */
+    | ID INC { asprintf(&$$, "(%s + 1)", $1); }
+    | ID DEC { asprintf(&$$, "(%s - 1)", $1); }
 
-    | STR_LITERAL {
-        $$ = strdup($1);
-    }
-
-    | expressao SOMA expressao {
-        asprintf(&$$, "%s + %s", $1, $3);
-    }
-
-    | expressao SUB expressao {
-        asprintf(&$$, "%s - %s", $1, $3);
-    }
-
-    | expressao MULT expressao {
-        asprintf(&$$, "%s * %s", $1, $3);
-    }
-
-    | expressao DIV expressao {
-        asprintf(&$$, "%s / %s", $1, $3);
-    }
-
-    | expressao MOD expressao {
-        asprintf(&$$, "%s %% %s", $1, $3);
-    }
-
-    | expressao TK_EQ expressao {
-        asprintf(&$$, "%s == %s", $1, $3);
-    }
-
-    | expressao TK_NE expressao {
-        asprintf(&$$, "%s != %s", $1, $3);
-    }
-
-    | expressao TK_LE expressao {
-        asprintf(&$$, "%s <= %s", $1, $3);
-    }
-
-    | expressao TK_GE expressao {
-        asprintf(&$$, "%s >= %s", $1, $3);
-    }
-
-    | expressao TK_LT expressao {
-        asprintf(&$$, "%s < %s", $1, $3);
-    }
-
-    | expressao TK_GT expressao {
-        asprintf(&$$, "%s > %s", $1, $3);
-    }
-
-    | APARENTESE expressao FPARENTESE {
-        asprintf(&$$, "(%s)", $2);
-    }
+    | APARENTESE expressao FPARENTESE { asprintf(&$$, "(%s)", $2); }
 ;
 
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr,
-            "Erro sintatico na linha %d perto de '%s'\n",
-            yylineno,
-            yytext);
-
+    fprintf(stderr, "Erro sintatico na linha %d perto de '%s'\n", yylineno, yytext);
     exit(1);
+}
+
+int main() {
+    yyparse();
+    return 0;
 }
