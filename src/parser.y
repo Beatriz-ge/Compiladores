@@ -29,8 +29,16 @@ void print_indent() {
 %token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE A_COLCHETE F_COLCHETE
 %token PONTO_VIRGULA ATRIB VIRGULA DOIS_PONTOS
 %token SOMA_ATRIB SUB_ATRIB MULT_ATRIB DIV_ATRIB MOD_ATRIB
-%token IF ELSE SWITCH CASE DEFAULT RETURN
-%token AND_LOGICO OR_LOGICO INC DEC
+
+%token IF SWITCH CASE DEFAULT RETURN
+%token FOR WHILE DO BREAK CONTINUE
+%token ELSE
+
+%token DOIS_PONTOS
+%token DOUBLE SHORT LONG SIGNED UNSIGNED VOID
+
+%token <str> STR_LITERAL
+%token <str>  CHAR_LITERAL
 %token TK_EQ TK_NE TK_LE TK_GE TK_LT TK_GT
 
 %token <str> STR_LITERAL CHAR_LITERAL NUM ID
@@ -213,41 +221,70 @@ retorno:
 ;
 
 expressao:
-      NUM                { $$ = strdup($1); }
-    | ID                 { 
-        if (buscar($1) == NULL) {
-            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' usada sem declaracao.\n", yylineno, $1);
-            exit(1);
-        }
-        $$ = strdup($1); 
-    }
-    | STR_LITERAL        { asprintf(&$$, "\"%s\"", $1); }
-    | CHAR_LITERAL       { asprintf(&$$, "'%s'", $1); }
-    
-    | ID A_COLCHETE expressao F_COLCHETE {
-        if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1); exit(1); }
-        asprintf(&$$, "%s[%s]", $1, $3);
+      NUM {
+        $$ = strdup($1);
     }
 
-    | expressao AND_LOGICO expressao { asprintf(&$$, "%s and %s", $1, $3); }
-    | expressao OR_LOGICO expressao  { asprintf(&$$, "%s or %s", $1, $3); }
-    | expressao TK_EQ expressao { asprintf(&$$, "%s == %s", $1, $3); }
-    | expressao TK_LT expressao { asprintf(&$$, "%s < %s", $1, $3); }
-    | expressao TK_GT expressao { asprintf(&$$, "%s > %s", $1, $3); }
-    | expressao SOMA expressao { asprintf(&$$, "%s + %s", $1, $3); }
-    | expressao SUB expressao  { asprintf(&$$, "%s - %s", $1, $3); }
-    | expressao MULT expressao { asprintf(&$$, "%s * %s", $1, $3); }
-    | expressao DIV expressao  { asprintf(&$$, "%s / %s", $1, $3); }
-    
-    | ID INC { 
-        if (buscar($1) == NULL) { exit(1); }
-        asprintf(&$$, "(%s + 1)", $1); 
+    | ID {
+        $$ = strdup($1);
     }
-    | ID DEC { 
-        if (buscar($1) == NULL) { exit(1); }
-        asprintf(&$$, "(%s - 1)", $1); 
+
+
+    | STR_LITERAL {
+        asprintf(&$$, "\"%s\"", $1);
     }
-    | APARENTESE expressao FPARENTESE { asprintf(&$$, "(%s)", $2); }
+
+    | CHAR_LITERAL {
+        asprintf(&$$, "'%s'", $1);
+    }
+
+    | expressao SOMA expressao {
+        asprintf(&$$, "%s + %s", $1, $3);
+    }
+
+    | expressao SUB expressao {
+        asprintf(&$$, "%s - %s", $1, $3);
+    }
+
+    | expressao MULT expressao {
+        asprintf(&$$, "%s * %s", $1, $3);
+    }
+
+    | expressao DIV expressao {
+        asprintf(&$$, "%s / %s", $1, $3);
+    }
+
+    | expressao MOD expressao {
+        asprintf(&$$, "%s %% %s", $1, $3);
+    }
+
+    | expressao TK_EQ expressao {
+        asprintf(&$$, "%s == %s", $1, $3);
+    }
+
+    | expressao TK_NE expressao {
+        asprintf(&$$, "%s != %s", $1, $3);
+    }
+
+    | expressao TK_LE expressao {
+        asprintf(&$$, "%s <= %s", $1, $3);
+    }
+
+    | expressao TK_GE expressao {
+        asprintf(&$$, "%s >= %s", $1, $3);
+    }
+
+    | expressao TK_LT expressao {
+        asprintf(&$$, "%s < %s", $1, $3);
+    }
+
+    | expressao TK_GT expressao {
+        asprintf(&$$, "%s > %s", $1, $3);
+    }
+
+    | APARENTESE expressao FPARENTESE {
+        asprintf(&$$, "(%s)", $2);
+    }
 ;
 
 %%
