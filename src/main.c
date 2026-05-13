@@ -13,15 +13,15 @@ int main(int argc, char** argv) {
         }
         yyin = file;
     } else {
-        printf("Aguardando entrada (Ctrl+D para finalizar):\n");
+        fprintf(stderr, "Aguardando entrada (Ctrl+D para finalizar):\n");
     }
 
     int result = yyparse();
 
     if (result == 0) {
-        printf("\n[SUCESSO] O código é sintaticamente válido.\n");
+        fprintf(stderr, "\n[SUCESSO] O código é sintaticamente válido.\n");
     } else {
-        printf("\n[ERRO] Falha na análise sintática.\n");
+        fprintf(stderr, "\n[ERRO] Falha na análise sintática.\n");
     }
 
     return result;
