@@ -1,17 +1,10 @@
 %{
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "common.h"
 #include "tabela.h"
-
-void yyerror(const char *s);
-int yylex();
-extern int yylineno;
-extern char *yytext;
 
 int indent = 0;
 
-void print_indent() {
+void print_indent(void) {
     for (int i = 0; i < indent; i++) {
         printf("    ");
     }
@@ -22,10 +15,17 @@ void print_indent() {
     char* str;
 }
 
+%code requires {
+    #include "common.h"
+}
+
 /* Ajuste: 'tipo' agora retorna string para podermos salvar na tabela */
+
 %type <str> expressao lista_ids tipo 
 
 %token INT FLOAT CHAR DOUBLE VOID
+%token SHORT LONG SIGNED UNSIGNED
+
 %token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE A_COLCHETE F_COLCHETE
 %token PONTO_VIRGULA ATRIB VIRGULA DOIS_PONTOS
 %token SOMA_ATRIB SUB_ATRIB MULT_ATRIB DIV_ATRIB MOD_ATRIB
@@ -34,12 +34,13 @@ void print_indent() {
 %token FOR WHILE DO BREAK CONTINUE
 %token ELSE
 
-%token DOIS_PONTOS
-%token DOUBLE SHORT LONG SIGNED UNSIGNED VOID
 
-%token <str> STR_LITERAL
-%token <str>  CHAR_LITERAL
+
 %token TK_EQ TK_NE TK_LE TK_GE TK_LT TK_GT
+
+%token OR_LOGICO AND_LOGICO
+%token SOMA SUB MULT DIV MOD
+%token INC DEC
 
 %token <str> STR_LITERAL CHAR_LITERAL NUM ID
 
@@ -60,9 +61,10 @@ void print_indent() {
 
 program:
       MAIN APARENTESE FPARENTESE bloco
-    | INT MAIN APARENTESE FPARENTESE bloco
+      
     | tipo MAIN APARENTESE FPARENTESE bloco
 ;
+
 
 bloco:
     ACHAVE { indent++; }
