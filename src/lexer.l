@@ -115,9 +115,6 @@ ESCAPE      \\[ntr0"'\\]
 }
 
 
-
-
-
 {NUM}       { yylval.str = strdup(yytext); return NUM; }
 {ID}        { yylval.str = strdup(yytext); return ID; }
 

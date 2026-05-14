@@ -9,3 +9,4 @@ typedef struct Simbolo {
 void inserir(char *nome, char *tipo, int escopo, int linha);
 Simbolo* buscar(char *nome);
 void remover_escopo(int escopo);
+void imprimir_tabela();

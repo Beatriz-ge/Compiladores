@@ -1,5 +1,15 @@
-int main() {
-    int a = 5;
+main() {
+    int a;
     int b = 10;
-    int c = a + b;
+    int c = 20;
+
+    a = b + c;
+
+    if (a > 20) {
+        a++;
+    } else {
+        a -= 1;
+    }
+
+    return a;
 }

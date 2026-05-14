@@ -36,3 +36,17 @@ void remover_escopo(int escopo) {
         free(aux);
     }
 }
+
+void imprimir_tabela() {
+    Simbolo *atual = tabela_simbolos;
+    fprintf(stderr, "\n--- CONTEÚDO DA TABELA DE SÍMBOLOS ---\n");
+    fprintf(stderr, "%-10s | %-10s | %-7s | %-5s\n", "NOME", "TIPO", "ESCOPO", "LINHA");
+    fprintf(stderr, "--------------------------------------------\n");
+    
+    while (atual != NULL) {
+        fprintf(stderr, "%-10s | %-10s | %-7d | %-5d\n", 
+               atual->nome, atual->tipo, atual->escopo, atual->linha);
+        atual = atual->proximo;
+    }
+    fprintf(stderr, "--------------------------------------------\n\n");
+}

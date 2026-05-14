@@ -13,20 +13,18 @@ COMPILADOR="./bin/compilador"
 echo -e "${YELLOW}Verificando arquivo: $INPUT${NC}"
 echo "------------------------------------------"
 
-# EXUCAÇÃO LIMPA:
-# 1. Redirecionamos o código Python (stdout) para o arquivo de saída
-# 2. Redirecionamos as mensagens de erro/status (stderr) para um arquivo temporário
-$COMPILADOR "$INPUT" > "$OUTPUT" 2> tmp_erros.txt
-STATUS=$? # Captura o status de saída do compilador
 
-# Lemos as mensagens de erro para validar as fases
+$COMPILADOR "$INPUT" > "$OUTPUT" 2> tmp_erros.txt
+STATUS=$? 
+cat tmp_erros.txt
+
 ERROS=$(cat tmp_erros.txt)
 
 # 1. TESTE LÉXICO E SINTÁTICO
 if [[ "$ERROS" == *"Erro sintatico"* ]]; then
     echo -e "Léxico/Sintático: ${RED}FALHOU${NC}"
     echo "$ERROS"
-    rm -f "$OUTPUT" # Não gera arquivo se falhar
+    rm -f "$OUTPUT" 
     exit 1
 else
     echo -e "Léxico:           ${GREEN}OK${NC}"
