@@ -4,17 +4,16 @@
 %option noinput
 
 %{
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "parser.tab.h"
+#include "common.h"
+#include "tabela.h"
 %}
 
 DIGITO      [0-9]
 LETRA       [a-zA-Z_]
 ID          {LETRA}({LETRA}|{DIGITO})*
 NUM         {DIGITO}+(\.{DIGITO}+)?
-ESCAPE      \\.
+ESCAPE      \\[ntr0"'\\]
 
 %%
 
@@ -26,12 +25,7 @@ ESCAPE      \\.
 "int"       { return INT; }
 "float"     { return FLOAT; }
 "char"      { return CHAR; }
-
 "double"    { return DOUBLE; }
-"short"     { return SHORT; }
-"long"      { return LONG; }
-"signed"    { return SIGNED; }
-"unsigned"  { return UNSIGNED; }
 "void"      { return VOID; }
 
 "if"        { return IF; }
@@ -59,62 +53,81 @@ ESCAPE      \\.
 ")"         { return FPARENTESE; }
 "{"         { return ACHAVE; }
 "}"         { return FCHAVE; }
+"["         { return A_COLCHETE; }
+"]"         { return F_COLCHETE; }
 ";"         { return PONTO_VIRGULA; }
 ":"         { return DOIS_PONTOS; }
+","         { return VIRGULA; }
 
-\"([^\"\\\n]|{ESCAPE})*\" {
-    int len = strlen(yytext) - 2;
-    yylval.str = (char*) malloc(len + 1);
-    memcpy(yylval.str, yytext + 1, len);
-    yylval.str[len] = '\0';
-    return STR_LITERAL;
-}
+"&&"        { return AND_LOGICO; }
+"||"        { return OR_LOGICO; }
+"++"        { return INC; }
+"--"        { return DEC; }
 
-\"([^\"\\\n]|{ESCAPE})*\n {
-    fprintf(stderr, "Erro Lexico na linha %d: string nao fechada\n", yylineno);
-}
-
-\'([^\'\\]|{ESCAPE})\' {
-    // Como no Python char e string são parecidos, vamos passar como string de 1 char
-    char c;
-    if (yytext[1] == '\\') {
-        switch (yytext[2]) {
-            case 'n':  c = '\n'; break;
-            case 't':  c = '\t'; break;
-            case 'r':  c = '\r'; break;
-            case '\\': c = '\\'; break;
-            case '\'': c = '\''; break;
-            case '0':  c = '\0'; break;
-            default:   c = yytext[2]; break;
-        }
-    } else {
-        c = yytext[1];
-    }
-    yylval.str = (char*) malloc(2);
-    yylval.str[0] = c;
-    yylval.str[1] = '\0';
-    return CHAR_LITERAL;
-}
-
-\'([^\'\\]|{ESCAPE})?\n {
-    fprintf(stderr, "Erro Lexico na linha %d: char nao fechado\n", yylineno);
-}
-
-\'([^\'\\]|{ESCAPE})+\' {
-    fprintf(stderr, "Erro Lexico na linha %d: char invalido\n", yylineno);
-}
+"=="        { return TK_EQ; }
+"!="        { return TK_NE; }
+"<="        { return TK_LE; }
+">="        { return TK_GE; }
+"<"         { return TK_LT; }
+">"         { return TK_GT; }
 
 "+="        { return SOMA_ATRIB; }
 "-="        { return SUB_ATRIB; }
 "*="        { return MULT_ATRIB; }
 "/="        { return DIV_ATRIB; }
 "%="        { return MOD_ATRIB; }
-"/"         { return DIV; }
 "="         { return ATRIB; }
 "+"         { return SOMA; }
 "-"         { return SUB; }
 "*"         { return MULT; }
+"/"         { return DIV; }
 "%"         { return MOD; }
+
+\"([^\"\\\n]|\\.)*\n {
+    yylineno--;
+    fprintf(stderr, "Erro Lexico na linha %d: string nao fechada\n", yylineno);
+    exit(1);
+}
+
+\"([^\"\\\n]|{ESCAPE})*\\[^ntr0\"\'\\][^\"\n]*\" {
+
+    fprintf(stderr, "Erro Lexico na linha %d: escape invalido em string\n", yylineno);
+    exit(1);
+}
+
+\"([^\"\\\n]|{ESCAPE})*\" {
+    int len = strlen(yytext);
+    yylval.str = (char*) malloc(len - 1);
+    memcpy(yylval.str, yytext + 1, len - 2);
+    yylval.str[len - 2] = '\0';
+    return STR_LITERAL;
+}
+
+\'([^\'\\]|\\.)?\n {
+    yylineno--;
+    fprintf(stderr, "Erro Lexico na linha %d: char nao fechado\n", yylineno);
+    exit(1);
+}
+
+\'\\[^ntr0\'\\]\' {
+
+    fprintf(stderr, "Erro Lexico na linha %d: escape invalido em char\n", yylineno);
+    exit(1);
+}
+
+\'([^\'\\]|{ESCAPE})\' {
+    int len = strlen(yytext);
+    yylval.str = (char*) malloc(len - 1);
+    memcpy(yylval.str, yytext + 1, len - 2);
+    yylval.str[len - 2] = '\0';
+    return CHAR_LITERAL;
+}
+
+\'([^\'\\]|\\.){2,}\' {
+    fprintf(stderr, "Erro Lexico na linha %d: char invalido\n", yylineno);
+    exit(1);
+}
+
 
 {NUM}       { yylval.str = strdup(yytext); return NUM; }
 {ID}        { yylval.str = strdup(yytext); return ID; }

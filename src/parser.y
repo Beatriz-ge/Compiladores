@@ -1,16 +1,10 @@
 %{
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-void yyerror(const char *s);
-int yylex();
-extern int yylineno;
-extern char *yytext;
+#include "common.h"
+#include "tabela.h"
 
 int indent = 0;
 
-void print_indent() {
+void print_indent(void) {
     for (int i = 0; i < indent; i++) {
         printf("    ");
     }
@@ -19,20 +13,23 @@ void print_indent() {
 
 %union {
     char* str;
-    char  ch;
 }
 
-%type <str> expressao
+%code requires {
+    #include "common.h"
+}
 
-/* Precedência para resolver o "Dangling Else" */
-%nonassoc LOWER_THAN_ELSE
-%nonassoc ELSE
+/* Ajuste: 'tipo' agora retorna string para podermos salvar na tabela */
 
-%token INT FLOAT CHAR
-%token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE
+%type <str> expressao lista_ids tipo 
 
-%token PONTO_VIRGULA ATRIB
-%token SOMA SUB MULT DIV MOD
+%token INT FLOAT CHAR DOUBLE VOID
+%token SHORT LONG SIGNED UNSIGNED
+
+%token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE A_COLCHETE F_COLCHETE
+%token PONTO_VIRGULA ATRIB VIRGULA DOIS_PONTOS
+
+/* Operadores de Atribuição Composta */
 %token SOMA_ATRIB SUB_ATRIB MULT_ATRIB DIV_ATRIB MOD_ATRIB
 
 %token IF SWITCH CASE DEFAULT RETURN
@@ -43,14 +40,28 @@ void print_indent() {
 %token DOUBLE SHORT LONG SIGNED UNSIGNED VOID
 %token STRUCT TYPEDEF SIZEOF CONST STATIC
 
-%token <str> STR_LITERAL
-%token <str> CHAR_LITERAL
-%token <str> NUM
-%token <str> ID
 
 
+%token TK_EQ TK_NE TK_LE TK_GE TK_LT TK_GT
+
+%token OR_LOGICO AND_LOGICO
+%token SOMA SUB MULT DIV MOD
+%token INC DEC
+
+%token <str> STR_LITERAL CHAR_LITERAL NUM ID
+
+/* Operadores Aritméticos e Lógicos (Declarados via Precedência) */
+%left OR_LOGICO
+%left AND_LOGICO
+%left TK_EQ TK_NE
+%left TK_LT TK_GT TK_LE TK_GE
 %left SOMA SUB
 %left MULT DIV MOD
+%right INC DEC 
+
+/* Precedência para resolver o conflito do ELSE (Dangling Else) */
+%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSE
 
 %start program
 
@@ -58,22 +69,27 @@ void print_indent() {
 
 program:
       MAIN APARENTESE FPARENTESE bloco
-    | INT MAIN APARENTESE FPARENTESE bloco
-    | VOID MAIN APARENTESE FPARENTESE bloco
+      
+    | tipo MAIN APARENTESE FPARENTESE bloco
 ;
 
+
 bloco:
-    ACHAVE {
-        indent++;
-    }
+    ACHAVE { indent++; }
     lista_comandos
-    FCHAVE {
-        indent--;
+    FCHAVE { 
+        
+        if (indent == 1) {
+            fprintf(stderr, "\n--- TABELA DE SÍMBOLOS COMPLETA (Antes da limpeza final) ---");
+            imprimir_tabela();
+        }
+
+        remover_escopo(indent); 
+        indent--; 
     }
 ;
 
 lista_comandos:
-      /* vazio */
     | lista_comandos comando
 ;
 
@@ -81,102 +97,40 @@ comando:
       declaracao
     | atribuicao
     | selecao
-    | repeticao
-    | salto
     | retorno
     | bloco
+    | expressao PONTO_VIRGULA 
 ;
 
-repeticao:
-      while_stmt
-    | do_while_stmt
-    | for_stmt
+tipo: 
+      INT    { $$ = "int"; }
+    | FLOAT  { $$ = "float"; }
+    | CHAR   { $$ = "char"; }
+    | DOUBLE { $$ = "double"; }
+    | VOID   { $$ = "void"; }
 ;
 
-while_stmt:
-    WHILE APARENTESE expressao FPARENTESE {
+lista_ids:
+      ID { 
+        if (buscar($1) != NULL) {
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' ja declarada.\n", yylineno, $1);
+            exit(1);
+        }
+        inserir($1, "desconhecido", indent, yylineno); 
         print_indent();
-        printf("while %s:\n", $3);
-        indent++;
-    }
-    comando {
-        indent--;
-    }
-;
-
-do_while_stmt:
-    DO {
+        printf("%s = None\n", $1); 
+        $$ = strdup($1);
+      }
+    | lista_ids VIRGULA ID { 
+        if (buscar($3) != NULL) {
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' ja declarada.\n", yylineno, $3);
+            exit(1);
+        }
+        inserir($3, "desconhecido", indent, yylineno);
         print_indent();
-        printf("while True:\n");
-
-        indent++;
-    }
-    comando
-    WHILE APARENTESE expressao FPARENTESE PONTO_VIRGULA {
-        print_indent();
-        printf("if not (%s):\n", $6);
-
-        indent++;
-
-        print_indent();
-        printf("break\n");
-
-        indent -= 2;
-    }
-;
-
-for_stmt:
-    FOR APARENTESE expressao PONTO_VIRGULA expressao PONTO_VIRGULA expressao FPARENTESE {
-        print_indent();
-        printf("# for traduzido\n");
-
-        print_indent();
-        printf("%s\n", $3);
-
-        print_indent();
-        printf("while %s:\n", $5);
-
-        indent++;
-    }
-    comando {
-        print_indent();
-        printf("%s\n", $7);
-
-        indent--;
-    }
-;
-
-salto:
-      BREAK PONTO_VIRGULA {
-        print_indent();
-        printf("break\n");
-    }
-
-    | CONTINUE PONTO_VIRGULA {
-        print_indent();
-        printf("continue\n");
-    }
-;
-
-tipo:
-      tipo_base
-    | qualificador tipo_base
-    | qualificador
-;
-
-tipo_base:
-      INT
-    | FLOAT
-    | CHAR
-    | DOUBLE
-    | VOID
-    | SHORT
-    | LONG
-;
-
-qualificador:
-      SIGNED
-    | UNSIGNED
+        printf("%s = None\n", $3); 
+        $$ = $1; 
+      }
 ;
 
 declaracao:
@@ -195,7 +149,13 @@ declaracao:
         printf("%s = None\n", $2);
     }
 
+      tipo lista_ids PONTO_VIRGULA 
     | tipo ID ATRIB expressao PONTO_VIRGULA {
+        if (buscar($2) != NULL) {
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' ja declarada.\n", yylineno, $2);
+            exit(1);
+        }
+        inserir($2, $1, indent, yylineno);
         print_indent();
         printf("%s = %s\n", $2, $4);
     }
@@ -210,62 +170,88 @@ modificadores:
 
 atribuicao:
       ID ATRIB expressao PONTO_VIRGULA {
+        if (buscar($1) == NULL) {
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
+            exit(1);
+        }
         print_indent();
         printf("%s = %s\n", $1, $3);
     }
-
     | ID SOMA_ATRIB expressao PONTO_VIRGULA {
+        if (buscar($1) == NULL) { 
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1); 
+            exit(1); 
+        }
         print_indent();
         printf("%s += %s\n", $1, $3);
     }
-
-    | ID SUB_ATRIB expressao PONTO_VIRGULA {
-        print_indent();
-        printf("%s -= %s\n", $1, $3);
+    | ID SUB_ATRIB expressao PONTO_VIRGULA { 
+        if (buscar($1) == NULL) { 
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1); 
+            exit(1); 
+        }
+        print_indent(); 
+        printf("%s -= %s\n", $1, $3); 
     }
-
-    | ID MULT_ATRIB expressao PONTO_VIRGULA {
-        print_indent();
-        printf("%s *= %s\n", $1, $3);
+    | ID MULT_ATRIB expressao PONTO_VIRGULA { 
+        if (buscar($1) == NULL) { 
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1); 
+            exit(1); 
+        }
+        print_indent(); 
+        printf("%s *= %s\n", $1, $3); 
     }
-
-    | ID DIV_ATRIB expressao PONTO_VIRGULA {
-        print_indent();
-        printf("%s /= %s\n", $1, $3);
+    | ID DIV_ATRIB expressao PONTO_VIRGULA { 
+        if (buscar($1) == NULL) { 
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1); 
+            exit(1); 
+        }
+        print_indent(); 
+        printf("%s /= %s\n", $1, $3); 
     }
-
-    | ID MOD_ATRIB expressao PONTO_VIRGULA {
+    | ID MOD_ATRIB expressao PONTO_VIRGULA { 
+        if (buscar($1) == NULL) { 
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1); 
+            exit(1); 
+        }
+        print_indent(); 
+        printf("%s %%= %s\n", $1, $3); 
+    }
+    | ID INC PONTO_VIRGULA {
+        if (buscar($1) == NULL) { 
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1); 
+            exit(1); 
+        }
         print_indent();
-        printf("%s %%= %s\n", $1, $3);
+        printf("%s += 1\n", $1);
+    }
+    | ID DEC PONTO_VIRGULA {
+        if (buscar($1) == NULL) { 
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1); 
+            exit(1); 
+        }
+        print_indent();
+        printf("%s -= 1\n", $1);
     }
 ;
 
 selecao:
-      if_header comando %prec LOWER_THAN_ELSE {
-          indent--;
-      }
-
+      if_header comando %prec LOWER_THAN_ELSE { indent--; }
     | if_header comando ELSE {
-          indent--;
-
+          indent--; 
           print_indent();
           printf("else:\n");
-
           indent++;
-      }
-      comando {
-          indent--;
-      }
+      } 
+      comando { indent--; }
 ;
 
 if_header:
     IF APARENTESE expressao FPARENTESE {
         print_indent();
         printf("if %s:\n", $3);
-
         indent++;
-    }
-;
+    };
 
 retorno:
     RETURN expressao PONTO_VIRGULA {
@@ -278,36 +264,52 @@ expressao:
       NUM {
         $$ = strdup($1);
     }
-
     | ID {
+        if (buscar($1) == NULL) {
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
+            exit(1);
+        }
         $$ = strdup($1);
     }
-
-
     | STR_LITERAL {
-        $$ = strdup($1);
+        asprintf(&$$, "\"%s\"", $1);
     }
-
+    | CHAR_LITERAL {
+        asprintf(&$$, "'%s'", $1);
+    }
     | expressao SOMA expressao {
         asprintf(&$$, "%s + %s", $1, $3);
     }
-
     | expressao SUB expressao {
         asprintf(&$$, "%s - %s", $1, $3);
     }
-
     | expressao MULT expressao {
         asprintf(&$$, "%s * %s", $1, $3);
     }
-
     | expressao DIV expressao {
         asprintf(&$$, "%s / %s", $1, $3);
     }
-
     | expressao MOD expressao {
         asprintf(&$$, "%s %% %s", $1, $3);
     }
-
+    | expressao TK_EQ expressao {
+        asprintf(&$$, "%s == %s", $1, $3);
+    }
+    | expressao TK_NE expressao {
+        asprintf(&$$, "%s != %s", $1, $3);
+    }
+    | expressao TK_LE expressao {
+        asprintf(&$$, "%s <= %s", $1, $3);
+    }
+    | expressao TK_GE expressao {
+        asprintf(&$$, "%s >= %s", $1, $3);
+    }
+    | expressao TK_LT expressao {
+        asprintf(&$$, "%s < %s", $1, $3);
+    }
+    | expressao TK_GT expressao {
+        asprintf(&$$, "%s > %s", $1, $3);
+    }
     | APARENTESE expressao FPARENTESE {
         asprintf(&$$, "(%s)", $2);
     }
@@ -324,10 +326,6 @@ expressao:
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr,
-            "Erro sintatico na linha %d perto de '%s'\n",
-            yylineno,
-            yytext);
-
+    fprintf(stderr, "Erro sintatico na linha %d perto de '%s'\n", yylineno, yytext);
     exit(1);
 }
