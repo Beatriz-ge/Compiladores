@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "tabela.h"
 
 extern int yyparse();
 extern FILE* yyin;
@@ -17,6 +18,7 @@ int main(int argc, char** argv) {
     }
 
     int result = yyparse();
+    fflush(stdout);
 
     if (result == 0) {
         fprintf(stderr, "\n[SUCESSO] O código é sintaticamente válido.\n");
