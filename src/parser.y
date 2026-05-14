@@ -21,9 +21,11 @@ void print_indent(void) {
 
 /* Ajuste: 'tipo' agora retorna string para podermos salvar na tabela */
 
-%type <str> expressao lista_ids tipo 
+
+%type <str> expressao lista_ids tipo comentario
 
 %token INT FLOAT CHAR DOUBLE VOID
+%token <str> COMMENT_LINE COMMENT_BLOCK
 %token SHORT LONG SIGNED UNSIGNED
 
 %token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE A_COLCHETE F_COLCHETE
@@ -95,7 +97,8 @@ comando:
     | selecao
     | retorno
     | bloco
-    | expressao PONTO_VIRGULA 
+    | comentario
+    | expressao PONTO_VIRGULA
 ;
 
 tipo: 
@@ -227,6 +230,43 @@ if_header:
         indent++;
     };
 
+comentario:
+      COMMENT_LINE {
+            print_indent();
+
+            char *texto = strdup($1 + 2);
+
+            while (*texto == ' ')
+                texto++;
+
+            printf("# %s\n", texto);
+      }
+
+    | COMMENT_BLOCK {
+
+            char *texto = strdup($1);
+
+            texto += 2;
+
+            texto[strlen(texto) - 2] = '\0';
+
+            char *linha = strtok(texto, "\n");
+
+            while (linha) {
+
+                while (*linha == ' ' || *linha == '\t')
+                    linha++;
+
+                if (strlen(linha) > 0) {
+                    print_indent();
+                    printf("# %s\n", linha);
+                }
+
+                linha = strtok(NULL, "\n");
+            }
+      }
+;
+
 retorno:
     RETURN expressao PONTO_VIRGULA {
         print_indent();
@@ -290,6 +330,8 @@ expressao:
 ;
 
 %%
+
+
 
 void yyerror(const char *s) {
     fprintf(stderr, "Erro sintatico na linha %d perto de '%s'\n", yylineno, yytext);

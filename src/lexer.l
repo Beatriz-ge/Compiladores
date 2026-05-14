@@ -19,7 +19,15 @@ ESCAPE      \\[ntr0"'\\]
 
 [ \t\r]+    { /* ignora */ }
 \n          { /* ignora */ }
-"//".* { /* ignora comentário */ }
+"//".* {
+    yylval.str = strdup(yytext);
+    return COMMENT_LINE;
+}
+
+\/\*([^*]|\*+[^*/])*\*\/ {
+    yylval.str = strdup(yytext);
+    return COMMENT_BLOCK;
+}
 
 "main"      { return MAIN; }
 "int"       { return INT; }
