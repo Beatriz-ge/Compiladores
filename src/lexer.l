@@ -30,24 +30,16 @@ ESCAPE      \\[ntr0"'\\]
 
 "if"        { return IF; }
 "else"      { return ELSE; }
-
-"for"       { return FOR; }
-"while"     { return WHILE; }
-"do"        {return DO; }
+"switch"    { return SWITCH; }
+"case"      { return CASE; }
+"default"   { return DEFAULT; }
+"return"    { return RETURN; }
 
 "struct"    { return STRUCT; }
 "typedef"   { return TYPEDEF; }
 "sizeof"    { return SIZEOF; }
 "const"     { return CONST; }
 "static"    { return STATIC; }
-
-"break"     { return BREAK; }
-"continue"  { return CONTINUE; }
-
-"switch"    { return SWITCH; }
-"case"      { return CASE; }
-"default"   { return DEFAULT; }
-"return"    { return RETURN; }
 
 "("         { return APARENTESE; }
 ")"         { return FPARENTESE; }

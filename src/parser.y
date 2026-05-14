@@ -36,8 +36,6 @@ void print_indent(void) {
 %token FOR WHILE DO BREAK CONTINUE
 %token ELSE
 
-%token DOIS_PONTOS
-%token DOUBLE SHORT LONG SIGNED UNSIGNED VOID
 %token STRUCT TYPEDEF SIZEOF CONST STATIC
 
 
@@ -108,6 +106,7 @@ tipo:
     | CHAR   { $$ = "char"; }
     | DOUBLE { $$ = "double"; }
     | VOID   { $$ = "void"; }
+    | STRUCT ID { asprintf(&$$, "struct %s", $2); }
 ;
 
 lista_ids:
@@ -133,39 +132,27 @@ lista_ids:
       }
 ;
 
+modificadores:
+        /* vazio */
+    | CONST
+    | STATIC
+    | CONST STATIC
+    | STATIC CONST
+;
+
 declaracao:
-    modificadores tipo ID PONTO_VIRGULA {
-        print_indent();
-        printf("%s = None\n", $3); 
-    }
-
+      modificadores tipo lista_ids PONTO_VIRGULA 
+    | tipo lista_ids PONTO_VIRGULA
     | modificadores tipo ID ATRIB expressao PONTO_VIRGULA {
+        inserir($3, $2, indent, yylineno);
         print_indent();
-        printf("%s = %s\n", $3, $5); 
+        printf("%s = %s\n", $3, $5);
     }
-
-    | tipo ID PONTO_VIRGULA {
-        print_indent();
-        printf("%s = None\n", $2);
-    }
-
-      tipo lista_ids PONTO_VIRGULA 
-    | tipo ID ATRIB expressao PONTO_VIRGULA {
-        if (buscar($2) != NULL) {
-            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' ja declarada.\n", yylineno, $2);
-            exit(1);
-        }
+    | tipo ID ATRIB expressao PONTO_VIRGULA { 
         inserir($2, $1, indent, yylineno);
         print_indent();
         printf("%s = %s\n", $2, $4);
     }
-;
-
-modificadores:
-      CONST
-    | STATIC
-    | CONST STATIC
-    | STATIC CONST
 ;
 
 atribuicao:
