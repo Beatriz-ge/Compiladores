@@ -115,27 +115,6 @@ ESCAPE      \\[ntr0"'\\]
     exit(1);
 }
 
-
-
-"=="        { return TK_EQ; }
-"!="        { return TK_NE; }
-"<="        { return TK_LE; }
-">="        { return TK_GE; }
-"<"         { return TK_LT; }
-">"         { return TK_GT; }
-
-"+="        { return SOMA_ATRIB; }
-"-="        { return SUB_ATRIB; }
-"*="        { return MULT_ATRIB; }
-"/="        { return DIV_ATRIB; }
-"%="        { return MOD_ATRIB; }
-"/"         { return DIV; }
-"="         { return ATRIB; }
-"+"         { return SOMA; }
-"-"         { return SUB; }
-"*"         { return MULT; }
-"%"         { return MOD; }
-
 {NUM}       { yylval.str = strdup(yytext); return NUM; }
 {ID}        { yylval.str = strdup(yytext); return ID; }
 
