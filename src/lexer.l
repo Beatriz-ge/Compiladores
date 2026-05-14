@@ -4,10 +4,9 @@
 %option noinput
 
 %{
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "parser.tab.h"
+#include "common.h"
+#include "tabela.h"
 %}
 
 DIGITO      [0-9]
@@ -114,6 +113,7 @@ ESCAPE      \\[ntr0"'\\]
     fprintf(stderr, "Erro Lexico na linha %d: char invalido\n", yylineno);
     exit(1);
 }
+
 
 {NUM}       { yylval.str = strdup(yytext); return NUM; }
 {ID}        { yylval.str = strdup(yytext); return ID; }

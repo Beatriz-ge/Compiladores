@@ -1,18 +1,10 @@
 %{
-#define _GNU_SOURCE
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "common.h"
 #include "tabela.h"
-
-void yyerror(const char *s);
-int yylex();
-extern int yylineno;
-extern char *yytext;
 
 int indent = 0;
 
-void print_indent() {
+void print_indent(void) {
     for (int i = 0; i < indent; i++) {
         printf("    ");
     }
@@ -23,24 +15,35 @@ void print_indent() {
     char* str;
 }
 
-/* Tipagem das regras */
+%code requires {
+    #include "common.h"
+}
+
+/* Ajuste: 'tipo' agora retorna string para podermos salvar na tabela */
+
 %type <str> expressao lista_ids tipo 
 
-/* Tokens de Tipos e Controle */
-%token INT FLOAT CHAR DOUBLE VOID SHORT LONG SIGNED UNSIGNED
-%token MAIN IF ELSE SWITCH CASE DEFAULT RETURN FOR WHILE DO BREAK CONTINUE
+%token INT FLOAT CHAR DOUBLE VOID
+%token SHORT LONG SIGNED UNSIGNED
 
-/* Delimitadores e Pontuação */
-%token APARENTESE FPARENTESE ACHAVE FCHAVE A_COLCHETE F_COLCHETE
+%token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE A_COLCHETE F_COLCHETE
 %token PONTO_VIRGULA ATRIB VIRGULA DOIS_PONTOS
 
 /* Operadores de Atribuição Composta */
 %token SOMA_ATRIB SUB_ATRIB MULT_ATRIB DIV_ATRIB MOD_ATRIB
 
-/* Operadores Relacionais */
+%token IF SWITCH CASE DEFAULT RETURN
+%token FOR WHILE DO BREAK CONTINUE
+%token ELSE
+
+
+
 %token TK_EQ TK_NE TK_LE TK_GE TK_LT TK_GT
 
-/* Tokens com valor semântico (String) */
+%token OR_LOGICO AND_LOGICO
+%token SOMA SUB MULT DIV MOD
+%token INC DEC
+
 %token <str> STR_LITERAL CHAR_LITERAL NUM ID
 
 /* Operadores Aritméticos e Lógicos (Declarados via Precedência) */
@@ -62,8 +65,10 @@ void print_indent() {
 
 program:
       MAIN APARENTESE FPARENTESE bloco
+      
     | tipo MAIN APARENTESE FPARENTESE bloco
 ;
+
 
 bloco:
     ACHAVE { indent++; }
