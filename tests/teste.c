@@ -1,15 +1,14 @@
 main() {
-    int a;
-    int b = 10;
-    int c = 20;
+    const float pi = 3.14;
+    static int contador = 0;
+    
+    int tamanho_tipo = sizeof(int);
+    int tamanho_var = sizeof(contador);
 
-    a = b + c;
+    typedef int inteiro;
 
-    if (a > 20) {
-        a++;
-    } else {
-        a -= 1;
-    }
-
-    return a;
+    struct Pessoa {
+        int idade;
+        float altura;
+    };
 }

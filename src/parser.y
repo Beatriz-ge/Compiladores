@@ -21,7 +21,7 @@ void print_indent(void) {
 
 /* Ajuste: 'tipo' agora retorna string para podermos salvar na tabela */
 
-%type <str> expressao lista_ids tipo 
+%type <str> expressao lista_ids tipo
 
 %token INT FLOAT CHAR DOUBLE VOID
 %token SHORT LONG SIGNED UNSIGNED
@@ -97,7 +97,8 @@ comando:
     | selecao
     | retorno
     | bloco
-    | expressao PONTO_VIRGULA 
+    | expressao PONTO_VIRGULA
+    | definicao_struct 
 ;
 
 tipo: 
@@ -133,15 +134,16 @@ lista_ids:
 ;
 
 modificadores:
-        /* vazio */
+      /* vazio */
     | CONST
     | STATIC
     | CONST STATIC
     | STATIC CONST
 ;
 
+
 declaracao:
-      modificadores tipo lista_ids PONTO_VIRGULA 
+      modificadores tipo lista_ids PONTO_VIRGULA
     | tipo lista_ids PONTO_VIRGULA
     | modificadores tipo ID ATRIB expressao PONTO_VIRGULA {
         inserir($3, $2, indent, yylineno);
@@ -152,6 +154,23 @@ declaracao:
         inserir($2, $1, indent, yylineno);
         print_indent();
         printf("%s = %s\n", $2, $4);
+    }
+    | TYPEDEF tipo ID PONTO_VIRGULA {
+        inserir($3, $2, indent, yylineno); 
+    }
+;
+
+definicao_struct:
+    STRUCT ID ACHAVE {
+        print_indent();
+        printf("class %s:\n", $2);
+        indent++;
+        print_indent();
+        printf("pass\n");
+    } 
+    lista_comandos 
+    FCHAVE PONTO_VIRGULA {
+        indent--;
     }
 ;
 
@@ -316,3 +335,4 @@ void yyerror(const char *s) {
     fprintf(stderr, "Erro sintatico na linha %d perto de '%s'\n", yylineno, yytext);
     exit(1);
 }
+
