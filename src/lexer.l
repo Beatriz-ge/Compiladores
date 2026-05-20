@@ -43,6 +43,12 @@ ESCAPE      \\[ntr0"'\\]
 "default"   { return DEFAULT; }
 "return"    { return RETURN; }
 
+"struct"    { return STRUCT; }
+"typedef"   { return TYPEDEF; }
+"sizeof"    { return SIZEOF; }
+"const"     { return CONST; }
+"static"    { return STATIC; }
+
 "("         { return APARENTESE; }
 ")"         { return FPARENTESE; }
 "{"         { return ACHAVE; }

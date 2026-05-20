@@ -38,6 +38,8 @@ void print_indent(void) {
 %token FOR WHILE DO BREAK CONTINUE
 %token ELSE
 
+%token STRUCT TYPEDEF SIZEOF CONST STATIC
+
 
 
 %token TK_EQ TK_NE TK_LE TK_GE TK_LT TK_GT
@@ -107,6 +109,7 @@ tipo:
     | CHAR   { $$ = "char"; }
     | DOUBLE { $$ = "double"; }
     | VOID   { $$ = "void"; }
+    | STRUCT ID { asprintf(&$$, "struct %s", $2); }
 ;
 
 lista_ids:
@@ -132,16 +135,44 @@ lista_ids:
       }
 ;
 
+modificadores:
+      /* vazio */
+    | CONST
+    | STATIC
+    | CONST STATIC
+    | STATIC CONST
+;
+
+
 declaracao:
-      tipo lista_ids PONTO_VIRGULA 
-    | tipo ID ATRIB expressao PONTO_VIRGULA {
-        if (buscar($2) != NULL) {
-            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' ja declarada.\n", yylineno, $2);
-            exit(1);
-        }
+      modificadores tipo lista_ids PONTO_VIRGULA
+    | tipo lista_ids PONTO_VIRGULA
+    | modificadores tipo ID ATRIB expressao PONTO_VIRGULA {
+        inserir($3, $2, indent, yylineno);
+        print_indent();
+        printf("%s = %s\n", $3, $5);
+    }
+    | tipo ID ATRIB expressao PONTO_VIRGULA { 
         inserir($2, $1, indent, yylineno);
         print_indent();
         printf("%s = %s\n", $2, $4);
+    }
+    | TYPEDEF tipo ID PONTO_VIRGULA {
+        inserir($3, $2, indent, yylineno); 
+    }
+;
+
+definicao_struct:
+    STRUCT ID ACHAVE {
+        print_indent();
+        printf("class %s:\n", $2);
+        indent++;
+        print_indent();
+        printf("pass\n");
+    } 
+    lista_comandos 
+    FCHAVE PONTO_VIRGULA {
+        indent--;
     }
 ;
 
@@ -327,6 +358,14 @@ expressao:
     | APARENTESE expressao FPARENTESE {
         asprintf(&$$, "(%s)", $2);
     }
+
+    | SIZEOF APARENTESE tipo FPARENTESE {
+        asprintf(&$$, "0");
+    }
+
+    | SIZEOF APARENTESE ID FPARENTESE {
+        asprintf(&$$, "0"); 
+    }
 ;
 
 %%
@@ -337,3 +376,4 @@ void yyerror(const char *s) {
     fprintf(stderr, "Erro sintatico na linha %d perto de '%s'\n", yylineno, yytext);
     exit(1);
 }
+
