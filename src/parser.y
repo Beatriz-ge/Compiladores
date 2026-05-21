@@ -22,7 +22,8 @@ void print_indent(void) {
 /* Ajuste: 'tipo' agora retorna string para podermos salvar na tabela */
 
 
-%type <str> expressao lista_ids tipo comentario
+
+%type <str> expressao lista_ids tipo comentario parametros parametro
 
 %token INT FLOAT CHAR DOUBLE VOID
 %token <str> COMMENT_LINE COMMENT_BLOCK
@@ -68,9 +69,18 @@ void print_indent(void) {
 %%
 
 program:
-      MAIN APARENTESE FPARENTESE bloco
-      
+    MAIN APARENTESE FPARENTESE bloco
     | tipo MAIN APARENTESE FPARENTESE bloco
+    | funcao
+    | program funcao
+;
+
+funcao:
+    tipo ID APARENTESE parametros FPARENTESE
+    {
+        printf("def %s(%s):\n", $2, $4);
+    }
+    bloco
 ;
 
 
@@ -100,6 +110,7 @@ comando:
     | retorno
     | bloco
     | comentario
+    | definicao_struct
     | expressao PONTO_VIRGULA
 ;
 
@@ -133,6 +144,29 @@ lista_ids:
         printf("%s = None\n", $3); 
         $$ = $1; 
       }
+;
+
+parametros:
+      /* vazio */ {
+            $$ = strdup("");
+      }
+
+    | parametro {
+            $$ = strdup($1);
+      }
+
+    | parametros VIRGULA parametro {
+            asprintf(&$$, "%s, %s", $1, $3);
+      }
+;
+
+parametro:
+    tipo ID {
+
+        inserir($2, $1, indent + 1, yylineno);
+
+        $$ = strdup($2);
+    }
 ;
 
 modificadores:
