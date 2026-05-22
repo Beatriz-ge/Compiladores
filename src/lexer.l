@@ -43,6 +43,12 @@ ESCAPE      \\[ntr0"'\\]
 "default"   { return DEFAULT; }
 "return"    { return RETURN; }
 
+"while"     { return WHILE; }
+"for"       { return FOR; }
+"do"        { return DO; }
+"break"     { return BREAK; }
+"continue"  { return CONTINUE; }
+
 "struct"    { return STRUCT; }
 "typedef"   { return TYPEDEF; }
 "sizeof"    { return SIZEOF; }
