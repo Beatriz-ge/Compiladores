@@ -67,6 +67,7 @@ ESCAPE      \\[ntr0"'\\]
 
 "&&"        { return AND_LOGICO; }
 "||"        { return OR_LOGICO; }
+"!"         { return NOT; }
 "++"        { return INC; }
 "--"        { return DEC; }
 

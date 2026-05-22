@@ -47,6 +47,7 @@ void print_indent(void) {
 %token OR_LOGICO AND_LOGICO
 %token SOMA SUB MULT DIV MOD
 %token INC DEC
+%token NOT
 
 /* Tokens com valor de string */
 %token <str> STR_LITERAL CHAR_LITERAL NUM ID
@@ -64,6 +65,7 @@ void print_indent(void) {
 %left SOMA SUB
 %left MULT DIV MOD
 %right INC DEC 
+%right NOT UMINUS
 
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
@@ -96,11 +98,11 @@ program:
 ;
 
 funcao:
-    tipo ID APARENTESE parametros FPARENTESE {
-        inserir($2, $1, 0, yylineno); 
+    modificadores tipo ID APARENTESE parametros FPARENTESE {
+        inserir($3, $2, 0, yylineno); 
     } 
     bloco {
-        $$ = create_func_node($1, $2, $4, $7); 
+        $$ = create_func_node($2, $3, $5, $8); 
     }
 ;
 
@@ -185,13 +187,13 @@ modificadores:
 ;
 
 declaracao:
-      tipo ID PONTO_VIRGULA {
-          inserir($2, $1, indent, yylineno);
-          $$ = create_decl_node($1, $2, NULL);
+      modificadores tipo ID PONTO_VIRGULA {
+          inserir($3, $2, indent, yylineno);
+          $$ = create_decl_node($2, $3, NULL);
       }
-    | tipo ID ATRIB expressao PONTO_VIRGULA { 
-          inserir($2, $1, indent, yylineno);
-          $$ = create_decl_node($1, $2, $4);
+    | modificadores tipo ID ATRIB expressao PONTO_VIRGULA { 
+          inserir($3, $2, indent, yylineno);
+          $$ = create_decl_node($2, $3, $5);
       }
 ;
 
@@ -273,6 +275,8 @@ expressao:
     | expressao AND_LOGICO expressao { $$ = create_binary_op_node("&&", $1, $3); }
     | expressao OR_LOGICO expressao  { $$ = create_binary_op_node("||", $1, $3); }
     | APARENTESE expressao FPARENTESE { $$ = $2; }
+    | NOT expressao { $$ = create_unary_op_node("!", $2); }
+    | SUB expressao %prec UMINUS { $$ = create_unary_op_node("-", $2); }
 ;
 
 chamada_funcao:

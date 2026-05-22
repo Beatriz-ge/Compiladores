@@ -1,6 +1,8 @@
 #define _GNU_SOURCE
 #include "ast.h"
 
+static ASTNode* current_loop_incr = NULL;
+
 void print_python_indent(int level) {
     for (int i = 0; i < level; i++) {
         printf("    ");
@@ -158,13 +160,20 @@ void generate_python(ASTNode* node, int indent_level) {
             printf(")");
             break;
 
-        case NODE_WHILE:
+        case NODE_WHILE: {
             print_python_indent(indent_level);
             printf("while ");
             generate_python(node->left, 0);
             printf(":\n");
+
+            ASTNode* prev_incr = current_loop_incr;
+            current_loop_incr = NULL;
+
             generate_python(node->right, indent_level + 1);
+
+            current_loop_incr = prev_incr;
             break;
+        }
 
         case NODE_BREAK:
             print_python_indent(indent_level);
@@ -172,6 +181,9 @@ void generate_python(ASTNode* node, int indent_level) {
             break;
 
         case NODE_CONTINUE:
+            if (current_loop_incr) {
+                generate_python(current_loop_incr, indent_level);
+            }
             print_python_indent(indent_level);
             printf("continue\n");
             break;
@@ -193,14 +205,19 @@ void generate_python(ASTNode* node, int indent_level) {
             if (cond) {
                 generate_python(cond, 0);
             } else {
-                printf("True"); 
+                printf("True");
             }
             printf(":\n");
+
+            ASTNode* prev_incr = current_loop_incr;
+            current_loop_incr = incr;
 
             if (body) {
                 generate_python(body, indent_level + 1);
             }
             
+            current_loop_incr = prev_incr;
+
             if (incr) {
                 generate_python(incr, indent_level + 1);
             }
@@ -222,6 +239,15 @@ void generate_python(ASTNode* node, int indent_level) {
             printf("return ");
             generate_python(node->left, 0);
             printf("\n");
+            break;
+
+        case NODE_UNARY_OP:
+            if (strcmp(node->value, "!") == 0) {
+                printf("not "); 
+            } else {
+                printf("%s", node->value); 
+            }
+            generate_python(node->left, 0);
             break;
 
         case NODE_IF: {
@@ -261,6 +287,7 @@ const char* get_node_type_name(NodeType type) {
         case NODE_BREAK:    return "BREAK";
         case NODE_CONTINUE: return "CONTINUE";
         case NODE_FOR:      return "FOR_LOOP";
+        case NODE_UNARY_OP: return "UNARY_OP";
         default:            return "UNKNOWN";
     }
 }
@@ -344,5 +371,12 @@ ASTNode* create_for_node(ASTNode* init, ASTNode* cond, ASTNode* incr, ASTNode* b
     
     node->left = header;
     node->right = execution;
+    return node;
+}
+
+ASTNode* create_unary_op_node(char* op, ASTNode* expr) {
+    ASTNode* node = allocate_node(NODE_UNARY_OP);
+    node->value = strdup(op);
+    node->left = expr;
     return node;
 }

@@ -19,7 +19,8 @@ typedef enum {
     NODE_WHILE,
     NODE_BREAK,
     NODE_CONTINUE,
-    NODE_FOR
+    NODE_FOR,
+    NODE_UNARY_OP
 } NodeType;
 
 typedef struct ASTNode {
@@ -47,6 +48,7 @@ ASTNode* create_while_node(ASTNode* condition, ASTNode* body);
 ASTNode* create_break_node(void);
 ASTNode* create_continue_node(void);
 ASTNode* create_for_node(ASTNode* init, ASTNode* cond, ASTNode* incr, ASTNode* body);
+ASTNode* create_unary_op_node(char* op, ASTNode* expr);
 
 void generate_python(ASTNode* node, int indent_level);
 void print_ast(ASTNode* node, int level);
