@@ -15,7 +15,11 @@ typedef enum {
     NODE_RETURN,
     NODE_LITERAL,
     NODE_ID,
-    NODE_BINARY_OP
+    NODE_BINARY_OP,
+    NODE_WHILE,
+    NODE_BREAK,
+    NODE_CONTINUE,
+    NODE_FOR
 } NodeType;
 
 typedef struct ASTNode {
@@ -39,6 +43,10 @@ ASTNode* create_return_node(ASTNode* expr);
 ASTNode* create_block_node(ASTNode* commands);
 ASTNode* create_func_node(char* ret_type, char* name, char* params, ASTNode* body);
 ASTNode* create_program_node(ASTNode* child, ASTNode* next);
+ASTNode* create_while_node(ASTNode* condition, ASTNode* body);
+ASTNode* create_break_node(void);
+ASTNode* create_continue_node(void);
+ASTNode* create_for_node(ASTNode* init, ASTNode* cond, ASTNode* incr, ASTNode* body);
 
 void generate_python(ASTNode* node, int indent_level);
 void print_ast(ASTNode* node, int level);

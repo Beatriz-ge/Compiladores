@@ -147,10 +147,70 @@ void generate_python(ASTNode* node, int indent_level) {
         case NODE_BINARY_OP:
             printf("(");
             generate_python(node->left, 0);
-            printf(" %s ", node->value);
+            if (strcmp(node->value, "&&") == 0) {
+                printf(" and ");
+            } else if (strcmp(node->value, "||") == 0) {
+                printf(" or ");
+            } else {
+                printf(" %s ", node->value);
+            }
             generate_python(node->right, 0);
             printf(")");
             break;
+
+        case NODE_WHILE:
+            print_python_indent(indent_level);
+            printf("while ");
+            generate_python(node->left, 0);
+            printf(":\n");
+            generate_python(node->right, indent_level + 1);
+            break;
+
+        case NODE_BREAK:
+            print_python_indent(indent_level);
+            printf("break\n");
+            break;
+
+        case NODE_CONTINUE:
+            print_python_indent(indent_level);
+            printf("continue\n");
+            break;
+
+        case NODE_FOR: {
+            ASTNode* header = node->left;
+            ASTNode* execution = node->right;
+            ASTNode* init = header ? header->left : NULL;
+            ASTNode* cond = header ? header->right : NULL;
+            ASTNode* incr = execution ? execution->left : NULL;
+            ASTNode* body = execution ? execution->right : NULL;
+
+            if (init) {
+                generate_python(init, indent_level);
+            }
+            
+            print_python_indent(indent_level);
+            printf("while ");
+            if (cond) {
+                generate_python(cond, 0);
+            } else {
+                printf("True"); 
+            }
+            printf(":\n");
+
+            if (body) {
+                generate_python(body, indent_level + 1);
+            }
+            
+            if (incr) {
+                generate_python(incr, indent_level + 1);
+            }
+            
+            if (!body && !incr) {
+                print_python_indent(indent_level + 1);
+                printf("pass\n");
+            }
+            break;
+        }
 
         case NODE_LITERAL:
         case NODE_ID:
@@ -197,6 +257,10 @@ const char* get_node_type_name(NodeType type) {
         case NODE_LITERAL:  return "LITERAL";
         case NODE_ID:       return "IDENTIFIER";
         case NODE_BINARY_OP:return "BINARY_OP";
+        case NODE_WHILE:    return "WHILE_LOOP";
+        case NODE_BREAK:    return "BREAK";
+        case NODE_CONTINUE: return "CONTINUE";
+        case NODE_FOR:      return "FOR_LOOP";
         default:            return "UNKNOWN";
     }
 }
@@ -250,4 +314,35 @@ void print_ast(ASTNode* node, int level) {
 
         node = node->next;
     }
+}
+
+ASTNode* create_while_node(ASTNode* condition, ASTNode* body) {
+    ASTNode* node = allocate_node(NODE_WHILE);
+    node->left = condition;
+    node->right = body;
+    return node;
+}
+
+ASTNode* create_break_node(void) {
+    return allocate_node(NODE_BREAK);
+}
+
+ASTNode* create_continue_node(void) {
+    return allocate_node(NODE_CONTINUE);
+}
+
+ASTNode* create_for_node(ASTNode* init, ASTNode* cond, ASTNode* incr, ASTNode* body) {
+    ASTNode* node = allocate_node(NODE_FOR);
+    
+    ASTNode* header = allocate_node(NODE_PROGRAM);
+    header->left = init;
+    header->right = cond;
+    
+    ASTNode* execution = allocate_node(NODE_PROGRAM);
+    execution->left = incr;
+    execution->right = body;
+    
+    node->left = header;
+    node->right = execution;
+    return node;
 }

@@ -54,6 +54,7 @@ void print_indent(void) {
 /* 3. AGORA OS %type (Pois o Bison já conhece os tokens acima) */
 %type <str> tipo parametro parametros argumentos
 %type <node> program funcao bloco lista_comandos comando declaracao atribuicao selecao retorno expressao definicao_struct elemento_programa chamada_funcao
+%type <node> for_init for_cond for_incr
 
 /* Precedências */
 %left OR_LOGICO
@@ -141,6 +142,18 @@ comando:
     | expressao PONTO_VIRGULA { $$ = $1; }
     | comentario         { $$ = NULL; } 
     | definicao_struct   { $$ = NULL; }
+    | WHILE APARENTESE expressao FPARENTESE comando {
+          $$ = create_while_node($3, $5);
+      }
+    | BREAK PONTO_VIRGULA {
+          $$ = create_break_node();
+      }
+    | CONTINUE PONTO_VIRGULA {
+          $$ = create_continue_node();
+      }
+    | FOR APARENTESE for_init PONTO_VIRGULA for_cond PONTO_VIRGULA for_incr FPARENTESE comando {
+        $$ = create_for_node($3, $5, $7, $9);
+    }
 ;
 
 tipo: 
@@ -257,6 +270,8 @@ expressao:
     | expressao TK_GE expressao { $$ = create_binary_op_node(">=", $1, $3); }
     | expressao TK_LT expressao { $$ = create_binary_op_node("<", $1, $3); }
     | expressao TK_GT expressao { $$ = create_binary_op_node(">", $1, $3); }
+    | expressao AND_LOGICO expressao { $$ = create_binary_op_node("&&", $1, $3); }
+    | expressao OR_LOGICO expressao  { $$ = create_binary_op_node("||", $1, $3); }
     | APARENTESE expressao FPARENTESE { $$ = $2; }
 ;
 
@@ -277,6 +292,36 @@ argumentos:
     | argumentos VIRGULA expressao { 
           asprintf(&$$, "%s, %s", $1, ($3 && $3->value ? $3->value : "")); 
       }
+;
+
+for_init:
+      /* vazio */ { $$ = NULL; }
+    | tipo ID {
+          inserir($2, $1, indent, yylineno);
+          $$ = create_decl_node($1, $2, NULL);
+      }
+    | tipo ID ATRIB expressao {
+          inserir($2, $1, indent, yylineno);
+          $$ = create_decl_node($1, $2, $4);
+      }
+    | ID ATRIB expressao {
+          if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico...\n"); exit(1); }
+          $$ = create_assign_node($1, "=", $3);
+      }
+;
+
+for_cond:
+    { $$ = NULL; }
+    | expressao   { $$ = $1; }
+;
+
+for_incr:
+    { $$ = NULL; }
+    | ID ATRIB expressao { $$ = create_assign_node($1, "=", $3); }
+    | ID SOMA_ATRIB expressao { $$ = create_assign_node($1, "+=", $3); }
+    | ID SUB_ATRIB expressao { $$ = create_assign_node($1, "-=", $3); }
+    | ID INC { $$ = create_assign_node($1, "+=", create_literal_node("1")); }
+    | ID DEC { $$ = create_assign_node($1, "-=", create_literal_node("1")); }
 ;
 
 %%
