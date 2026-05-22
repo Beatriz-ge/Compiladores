@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 tmp_erros.txt
 .vscode
+tests/saida.py
