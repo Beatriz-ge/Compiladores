@@ -25,7 +25,7 @@ void print_indent(void) {
     #include "ast/ast.h"
 }
 
-%type <str> expressao lista_ids tipo comentario parametros parametro
+
 
 %token INT FLOAT CHAR DOUBLE VOID
 %token <str> COMMENT_LINE COMMENT_BLOCK
@@ -54,8 +54,7 @@ void print_indent(void) {
 /* Tokens com valor de string */
 %token <str> STR_LITERAL CHAR_LITERAL NUM ID
 
-/* 3. AGORA OS %type (Pois o Bison já conhece os tokens acima) */
-%type <str> tipo parametro parametros argumentos
+%type <str> comentario argumentos tipo parametro parametros
 %type <node> program funcao bloco bloco_da_funcao lista_comandos comando declaracao atribuicao selecao retorno expressao definicao_struct elemento_programa chamada_funcao
 %type <node> for_init for_cond for_incr
 
@@ -115,7 +114,6 @@ bloco_da_funcao:
         sair_escopo();
         $$ = create_block_node($2);
     }
-    bloco
     
 ;
 
@@ -176,43 +174,6 @@ tipo:
     }
 ;
 
-lista_ids:
-      ID {
-
-        if (buscar($1) != NULL) {
-            fprintf(stderr,
-                "Erro Semantico na linha %d: Variavel '%s' ja declarada.\n",
-                yylineno,
-                $1);
-            exit(1);
-        }
-
-        inserir($1, "desconhecido", indent, yylineno);
-
-        print_indent();
-        printf("%s = None\n", $1);
-
-        $$ = strdup($1);
-      }
-
-    | lista_ids VIRGULA ID {
-
-        if (buscar($3) != NULL) {
-            fprintf(stderr,
-                "Erro Semantico na linha %d: Variavel '%s' ja declarada.\n",
-                yylineno,
-                $3);
-            exit(1);
-        }
-
-        inserir($3, "desconhecido", indent, yylineno);
-
-        print_indent();
-        printf("%s = None\n", $3);
-
-        $$ = $1;
-      }
-;
 
 parametros:
     { $$ = strdup(""); }
@@ -302,47 +263,6 @@ atribuicao:
     | ID DEC PONTO_VIRGULA {
         if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico...\n"); exit(1); }
         $$ = create_assign_node($1, "-=", create_literal_node("1"));
-    }
-;
-
-repeticao:
-    FOR APARENTESE
-    ID ATRIB expressao PONTO_VIRGULA
-    expressao PONTO_VIRGULA
-    ID INC
-    FPARENTESE
-    {
-
-        char var[100];
-        char operador[10];
-        char limite[100];
-
-        if (buscar($3) == NULL) {
-            fprintf(stderr,
-                "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n",
-                yylineno,
-                $3);
-            exit(1);
-        }
-
-        if (strcmp($3, $9) != 0) {
-            fprintf(stderr,
-                "Erro Semantico na linha %d: Variaveis do for inconsistentes.\n",
-                yylineno);
-            exit(1);
-        }
-
-        sscanf($7, "%99s %9s %99s", var, operador, limite);
-
-        print_indent();
-
-        printf("for %s in range(%s, %s):\n", $3, $5, limite);
-
-        indent++;
-    }
-    comando
-    {
-        indent--;
     }
 ;
 

@@ -3,12 +3,11 @@ static int testar_escopos(int parametro_a) {
     x = 5;
     
     {
-        char x; // Shadowing: Este 'x' esconde o 'x' de cima
+        char x; 
         x = 'G';
         int interno_bloco;
         interno_bloco = 42;
-    } // 'interno_bloco' e o 'char x' morrem aqui!
-    
+    } 
     parametro_a = parametro_a + 1;
 }
 
@@ -20,8 +19,8 @@ int main() {
         if (i == 2 && !parado) {
             continue; 
         }
-        int inverso;
-        inverso = -i;
+        int inverso = -i;
+        
     }
     return 0;
 }
