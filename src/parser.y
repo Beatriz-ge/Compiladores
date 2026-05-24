@@ -54,7 +54,7 @@ void print_indent(void) {
 
 /* 3. AGORA OS %type (Pois o Bison já conhece os tokens acima) */
 %type <str> tipo parametro parametros argumentos
-%type <node> program funcao bloco lista_comandos comando declaracao atribuicao selecao retorno expressao definicao_struct elemento_programa chamada_funcao
+%type <node> program funcao bloco bloco_da_funcao lista_comandos comando declaracao atribuicao selecao retorno expressao definicao_struct elemento_programa chamada_funcao
 %type <node> for_init for_cond for_incr
 
 /* Precedências */
@@ -77,11 +77,11 @@ void print_indent(void) {
 elemento_programa:
       funcao { $$ = $1; }
     | MAIN APARENTESE FPARENTESE bloco { 
-          inserir("main", "int", 0, yylineno); 
+          inserir("main", "int", yylineno); 
           $$ = create_func_node("int", "main", "", $4); 
       }
     | tipo MAIN APARENTESE FPARENTESE bloco { 
-          inserir("main", $1, 0, yylineno); 
+          inserir("main", $1, yylineno); 
           $$ = create_func_node($1, "main", "", $5); 
       }
 ;
@@ -98,23 +98,25 @@ program:
 ;
 
 funcao:
-    modificadores tipo ID APARENTESE parametros FPARENTESE {
-        inserir($3, $2, 0, yylineno); 
-    } 
-    bloco {
-        $$ = create_func_node($2, $3, $5, $8); 
+    modificadores tipo ID APARENTESE { entrar_escopo(); } parametros FPARENTESE bloco_da_funcao {
+        $$ = create_func_node($2, $3, $6, $8); 
+    }
+;
+
+bloco_da_funcao:
+    ACHAVE lista_comandos FCHAVE {
+        if (indent == 1) {
+            fprintf(stderr, "\n=== TABELA DE SÍMBOLOS DA FUNÇÃO ===\n");
+            imprimir_tabela();
+        }
+        sair_escopo();
+        $$ = create_block_node($2);
     }
 ;
 
 bloco:
-    ACHAVE { indent++; } lista_comandos FCHAVE { 
-        if (indent == 1) {
-            fprintf(stderr, "\n=== TABELA DE SÍMBOLOS COMPLETA ===\n");
-            imprimir_tabela();
-        }
-        remover_escopo(indent); 
-        indent--; 
-        
+    ACHAVE { entrar_escopo(); } lista_comandos FCHAVE { 
+        sair_escopo(); 
         $$ = create_block_node($3);
     }
 ;
@@ -174,7 +176,7 @@ parametros:
 
 parametro:
     tipo ID {
-        inserir($2, $1, indent + 1, yylineno);
+        inserir($2, $1, yylineno);
         $$ = strdup($2);
     }
 ;
@@ -188,11 +190,11 @@ modificadores:
 
 declaracao:
       modificadores tipo ID PONTO_VIRGULA {
-          inserir($3, $2, indent, yylineno);
+          inserir($3, $2, yylineno); 
           $$ = create_decl_node($2, $3, NULL);
       }
     | modificadores tipo ID ATRIB expressao PONTO_VIRGULA { 
-          inserir($3, $2, indent, yylineno);
+          inserir($3, $2, yylineno); 
           $$ = create_decl_node($2, $3, $5);
       }
 ;
@@ -301,11 +303,11 @@ argumentos:
 for_init:
       /* vazio */ { $$ = NULL; }
     | tipo ID {
-          inserir($2, $1, indent, yylineno);
+          inserir($2, $1, yylineno);
           $$ = create_decl_node($1, $2, NULL);
       }
     | tipo ID ATRIB expressao {
-          inserir($2, $1, indent, yylineno);
+          inserir($2, $1, yylineno);
           $$ = create_decl_node($1, $2, $4);
       }
     | ID ATRIB expressao {
