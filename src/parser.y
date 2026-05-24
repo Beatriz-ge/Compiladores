@@ -25,7 +25,8 @@ void print_indent(void) {
     #include "ast/ast.h"
 }
 
-/* 2. DEFINIÇÃO DOS TOKENS (O Bison precisa ver isso ANTES dos %type) */
+%type <str> expressao lista_ids tipo comentario parametros parametro
+
 %token INT FLOAT CHAR DOUBLE VOID
 %token <str> COMMENT_LINE COMMENT_BLOCK
 %token SHORT LONG SIGNED UNSIGNED
@@ -33,12 +34,13 @@ void print_indent(void) {
 %token MAIN APARENTESE FPARENTESE ACHAVE FCHAVE A_COLCHETE F_COLCHETE
 %token PONTO_VIRGULA ATRIB VIRGULA DOIS_PONTOS
 
-/* Operadores de Atribuição Composta */
+
 %token SOMA_ATRIB SUB_ATRIB MULT_ATRIB DIV_ATRIB MOD_ATRIB
 
 %token IF SWITCH CASE DEFAULT RETURN
 %token FOR WHILE DO BREAK CONTINUE
 %token ELSE
+
 
 %token STRUCT TYPEDEF SIZEOF CONST STATIC
 
@@ -66,6 +68,7 @@ void print_indent(void) {
 %left MULT DIV MOD
 %right INC DEC 
 %right NOT UMINUS
+
 
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
@@ -104,6 +107,8 @@ funcao:
     bloco {
         $$ = create_func_node($2, $3, $5, $8); 
     }
+    bloco
+    
 ;
 
 bloco:
@@ -158,12 +163,53 @@ comando:
     }
 ;
 
-tipo: 
+tipo:
       INT    { $$ = "int"; }
     | FLOAT  { $$ = "float"; }
     | CHAR   { $$ = "char"; }
     | DOUBLE { $$ = "double"; }
     | VOID   { $$ = "void"; }
+    | STRUCT ID {
+        asprintf(&$$, "struct %s", $2);
+    }
+;
+
+lista_ids:
+      ID {
+
+        if (buscar($1) != NULL) {
+            fprintf(stderr,
+                "Erro Semantico na linha %d: Variavel '%s' ja declarada.\n",
+                yylineno,
+                $1);
+            exit(1);
+        }
+
+        inserir($1, "desconhecido", indent, yylineno);
+
+        print_indent();
+        printf("%s = None\n", $1);
+
+        $$ = strdup($1);
+      }
+
+    | lista_ids VIRGULA ID {
+
+        if (buscar($3) != NULL) {
+            fprintf(stderr,
+                "Erro Semantico na linha %d: Variavel '%s' ja declarada.\n",
+                yylineno,
+                $3);
+            exit(1);
+        }
+
+        inserir($3, "desconhecido", indent, yylineno);
+
+        print_indent();
+        printf("%s = None\n", $3);
+
+        $$ = $1;
+      }
 ;
 
 parametros:
@@ -177,7 +223,6 @@ parametro:
         inserir($2, $1, indent + 1, yylineno);
         $$ = strdup($2);
     }
-;
 
 modificadores:
     | CONST
@@ -188,38 +233,113 @@ modificadores:
 
 declaracao:
       modificadores tipo ID PONTO_VIRGULA {
-          inserir($3, $2, indent, yylineno);
+          inserir($3, $2, yylineno);
           $$ = create_decl_node($2, $3, NULL);
       }
     | modificadores tipo ID ATRIB expressao PONTO_VIRGULA { 
-          inserir($3, $2, indent, yylineno);
+          inserir($3, $2, yylineno);
           $$ = create_decl_node($2, $3, $5);
       }
 ;
 
 atribuicao:
       ID ATRIB expressao PONTO_VIRGULA {
+
         if (buscar($1) == NULL) {
-            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
+            fprintf(stderr,
+                "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n",
+                yylineno,
+                $1);
             exit(1);
         }
         $$ = create_assign_node($1, "=", $3);
     }
+
     | ID SOMA_ATRIB expressao PONTO_VIRGULA {
-        if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico...\n"); exit(1); }
+
+       if (buscar($1) == NULL) {
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
+            exit(1);
+        }
         $$ = create_assign_node($1, "+=", $3);
     }
     | ID SUB_ATRIB expressao PONTO_VIRGULA { 
-        if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico...\n"); exit(1); }
+        if (buscar($1) == NULL) {
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
+            exit(1);
+        }
         $$ = create_assign_node($1, "-=", $3); 
     }
+    | ID MULT_ATRIB expressao PONTO_VIRGULA {
+        if (buscar($1) == NULL) {
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
+            exit(1);
+        }
+        $$ = create_assign_node($1, "*=", $3);
+    }
+    | ID DIV_ATRIB expressao PONTO_VIRGULA {
+        if (buscar($1) == NULL) {
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
+            exit(1);
+        }
+        $$ = create_assign_node($1, "/=", $3);
+    }
+    | ID MOD_ATRIB expressao PONTO_VIRGULA {
+        if (buscar($1) == NULL) {
+            fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
+            exit(1);
+        }
+        $$ = create_assign_node($1, "%=", $3);
+
     | ID INC PONTO_VIRGULA {
         if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico...\n"); exit(1); }
         $$ = create_assign_node($1, "+=", create_literal_node("1"));
     }
+
     | ID DEC PONTO_VIRGULA {
         if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico...\n"); exit(1); }
         $$ = create_assign_node($1, "-=", create_literal_node("1"));
+    }
+;
+
+repeticao:
+    FOR APARENTESE
+    ID ATRIB expressao PONTO_VIRGULA
+    expressao PONTO_VIRGULA
+    ID INC
+    FPARENTESE
+    {
+
+        char var[100];
+        char operador[10];
+        char limite[100];
+
+        if (buscar($3) == NULL) {
+            fprintf(stderr,
+                "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n",
+                yylineno,
+                $3);
+            exit(1);
+        }
+
+        if (strcmp($3, $9) != 0) {
+            fprintf(stderr,
+                "Erro Semantico na linha %d: Variaveis do for inconsistentes.\n",
+                yylineno);
+            exit(1);
+        }
+
+        sscanf($7, "%99s %9s %99s", var, operador, limite);
+
+        print_indent();
+
+        printf("for %s in range(%s, %s):\n", $3, $5, limite);
+
+        indent++;
+    }
+    comando
+    {
+        indent--;
     }
 ;
 
@@ -281,10 +401,10 @@ expressao:
 
 chamada_funcao:
     ID APARENTESE argumentos FPARENTESE {
-        char* chamada_str;
-        asprintf(&chamada_str, "%s(%s)", $1, $3);
-        $$ = create_literal_node(chamada_str);
-        free(chamada_str);
+        char* llamada_str;
+        asprintf(&llamada_str, "%s(%s)", $1, $3);
+        $$ = create_literal_node(llamada_str);
+        free(llamada_str);
     }
 ;
 
@@ -301,15 +421,15 @@ argumentos:
 for_init:
       /* vazio */ { $$ = NULL; }
     | tipo ID {
-          inserir($2, $1, indent, yylineno);
+          inserir($2, $1, yylineno);
           $$ = create_decl_node($1, $2, NULL);
       }
     | tipo ID ATRIB expressao {
-          inserir($2, $1, indent, yylineno);
+          inserir($2, $1, yylineno);
           $$ = create_decl_node($1, $2, $4);
       }
     | ID ATRIB expressao {
-          if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico...\n"); exit(1); }
+          if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1); exit(1); }
           $$ = create_assign_node($1, "=", $3);
       }
 ;

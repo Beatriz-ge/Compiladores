@@ -43,8 +43,8 @@ ESCAPE      \\[ntr0"'\\]
 "default"   { return DEFAULT; }
 "return"    { return RETURN; }
 
-"while"     { return WHILE; }
 "for"       { return FOR; }
+"while"     { return WHILE; }
 "do"        { return DO; }
 "break"     { return BREAK; }
 "continue"  { return CONTINUE; }
