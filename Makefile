@@ -7,9 +7,9 @@ SRC = src
 BUILD = build
 BIN = bin
 
-# Adicionamos o tabela.o aqui na lista de objetos
+# Adicionado o $(BUILD)/ast.o na lista de dependências
 TARGET = $(BIN)/compilador
-OBJS = $(BUILD)/lex.yy.o $(BUILD)/parser.tab.o $(BUILD)/main.o $(BUILD)/tabela.o
+OBJS = $(BUILD)/lex.yy.o $(BUILD)/parser.tab.o $(BUILD)/main.o $(BUILD)/tabela.o $(BUILD)/ast.o
 
 all: $(TARGET)
 
@@ -36,10 +36,15 @@ $(BUILD)/tabela.o: $(SRC)/tabela.c $(SRC)/tabela.h
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -I$(SRC) -c $(SRC)/tabela.c -o $@
 
-# Regra para o MAIN.C 
+# NOVO: Regra para compilar o AST.C que está dentro da pasta src/ast/
+$(BUILD)/ast.o: $(SRC)/ast/ast.c $(SRC)/ast/ast.h
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -I$(SRC) -c $(SRC)/ast/ast.c -o $@
+
+# Regra para o MAIN.C (Adicionado o -I$(SRC)/ast para achar o header da árvore)
 $(BUILD)/main.o: $(SRC)/main.c $(BUILD)/parser.tab.h
 	@mkdir -p $(BUILD)
-	$(CC) $(CFLAGS) -I$(SRC) -I$(BUILD) -c $(SRC)/main.c -o $@
+	$(CC) $(CFLAGS) -I$(SRC) -I$(SRC)/ast -I$(BUILD) -c $(SRC)/main.c -o $@
 
 clean:
 	rm -rf $(BUILD) $(BIN)

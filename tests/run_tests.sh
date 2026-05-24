@@ -27,7 +27,7 @@ if [[ "$ERROS" == *"Erro sintatico"* ]]; then
     rm -f "$OUTPUT" 
     exit 1
 else
-    echo -e "Léxico:           ${GREEN}OK${NC}"
+    echo -e "Léxico:           ${GREEN}OK${NC}" 
     echo -e "Sintático:        ${GREEN}OK${NC}"
 fi
 
@@ -41,11 +41,9 @@ else
     echo -e "Semântico:        ${GREEN}OK${NC}"
 fi
 
-echo "------------------------------------------"
+echo ""====================================""
 echo -e "${GREEN}TUDO OK!${NC}"
 echo -e "Arquivo ${YELLOW}'$OUTPUT'${NC} criado com sucesso."
-echo -e "\nConteúdo gerado:"
-cat "$OUTPUT"
 
 # Limpa o lixo
 rm -f tmp_erros.txt 

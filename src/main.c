@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>  
 #include "tabela.h"
+#include "common.h"
+#include "ast.h"
 
 extern int yyparse();
 extern FILE* yyin;
+extern ASTNode* global_ast_root; 
 
 int main(int argc, char** argv) {
     if (argc > 1) {
@@ -20,10 +24,29 @@ int main(int argc, char** argv) {
     int result = yyparse();
     fflush(stdout);
 
-    if (result == 0) {
-        fprintf(stderr, "\n[SUCESSO] O código é sintaticamente válido.\n");
+    if (result == 0) {        
+        fprintf(stderr, "\n=== VISUALIZAÇÃO GRÁFICA DA AST ===\n");
+        
+        fflush(stdout);
+        int stdout_backup = dup(1); 
+        dup2(2, 1);                
+
+        print_ast(global_ast_root, 0); 
+        
+        fflush(stdout);
+        dup2(stdout_backup, 1);     
+        close(stdout_backup);
+
+        fprintf(stderr, "===================================\n\n");
+        
+        generate_python(global_ast_root, 0);
+        
     } else {
-        fprintf(stderr, "\n[ERRO] Falha na análise sintática.\n");
+        fprintf(stderr, "\n[ERRO] Falha na análise.\n");
+    }
+
+    if (argc > 1 && yyin) {
+        fclose(yyin);
     }
 
     return result;
