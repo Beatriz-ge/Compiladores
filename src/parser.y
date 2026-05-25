@@ -107,14 +107,12 @@ funcao:
 
 bloco_da_funcao:
     ACHAVE lista_comandos FCHAVE {
-        if (indent == 1) {
-            fprintf(stderr, "\n=== TABELA DE SÍMBOLOS DA FUNÇÃO ===\n");
-            imprimir_tabela();
-        }
+        /*fprintf(stderr, "\n=== TABELA DE SÍMBOLOS DA FUNÇÃO ===\n");*/
+        /*imprimir_tabela();*/
+        
         sair_escopo();
         $$ = create_block_node($2);
     }
-    
 ;
 
 bloco:

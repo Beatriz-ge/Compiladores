@@ -31,14 +31,19 @@ int main(int argc, char** argv) {
         int stdout_backup = dup(1); 
         dup2(2, 1);                
 
-        print_ast(global_ast_root, 0); 
+        print_ast(global_ast_root, 0);
+        fflush(stdout); 
+
+        fprintf(stderr, "===================================\n\n");
+       
+        imprimir_historico_completo();
         
         fflush(stdout);
         dup2(stdout_backup, 1);     
         close(stdout_backup);
 
         fprintf(stderr, "===================================\n\n");
-        
+
         generate_python(global_ast_root, 0);
         
     } else {
