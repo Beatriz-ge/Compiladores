@@ -19,20 +19,16 @@ void entrar_escopo() {
     Escopo *novo_escopo = (Escopo*) malloc(sizeof(Escopo));
     novo_escopo->lista_simbolos = NULL;
     
-    // O pai do novo escopo é o escopo que estava ativo até agora
     novo_escopo->escopo_pai = escopo_atual;
     
-    // O novo escopo se torna o escopo atual
     escopo_atual = novo_escopo;
 }
 
-// Destrói o escopo atual e volta para o pai (chamado ao fechar uma chave '}')
 void sair_escopo() {
     if (escopo_atual == NULL) return;
 
     Escopo *escopo_antigo = escopo_atual;
     
-    // Primeiro, liberamos todos os símbolos que foram criados neste escopo
     Simbolo *atual = escopo_antigo->lista_simbolos;
     while (atual != NULL) {
         Simbolo *aux = atual;
@@ -42,10 +38,8 @@ void sair_escopo() {
         free(aux);
     }
     
-    // O escopo atual volta a ser o escopo pai
     escopo_atual = escopo_antigo->escopo_pai;
     
-    // Liberamos a estrutura do escopo em si
     free(escopo_antigo);
 }
 
