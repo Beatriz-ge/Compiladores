@@ -7,6 +7,8 @@ typedef struct SímboloHistórico {
     char* nome;       
     char* tipo;       
     int linha;
+    TipoSimbolo categoria;
+    int tamanho_array;
     struct SímboloHistórico* proximo;
 } SimboloHistorico;
 
@@ -43,7 +45,7 @@ void sair_escopo() {
     free(escopo_antigo);
 }
 
-void inserir(char* nome, char *tipo, int linha) {
+static void inserir_simbolo(char* nome, char *tipo, TipoSimbolo cat, int tamanho, int linha) {
     
     if (escopo_atual == NULL) {
         entrar_escopo();
@@ -58,6 +60,8 @@ void inserir(char* nome, char *tipo, int linha) {
     novo->nome = strdup(nome);
     novo->tipo = strdup(tipo);
     novo->linha = linha;
+    novo->categoria     = cat;
+    novo->tamanho_array = tamanho;
     novo->proximo = escopo_atual->lista_simbolos;
     escopo_atual->lista_simbolos = novo;
 
@@ -65,6 +69,8 @@ void inserir(char* nome, char *tipo, int linha) {
     novo_historico->nome = strdup(nome); 
     novo_historico->tipo = strdup(tipo);
     novo_historico->linha = linha;
+    novo_historico->categoria     = cat;
+    novo_historico->tamanho_array = tamanho;
     novo_historico->proximo = NULL;
 
     if (historico_inicio == NULL) {
@@ -74,6 +80,18 @@ void inserir(char* nome, char *tipo, int linha) {
         historico_fim->proximo = novo_historico;
         historico_fim = novo_historico;
     }
+}
+
+void inserir(char *nome, char *tipo, int linha) {
+    inserir_simbolo(nome, tipo, SIM_VAR, 0, linha);
+}
+
+void inserir_array(char *nome, char *tipo, int tamanho, int linha) {
+    inserir_simbolo(nome, tipo, SIM_ARRAY, tamanho, linha);
+}
+
+void inserir_ponteiro(char *nome, char *tipo, int linha) {
+    inserir_simbolo(nome, tipo, SIM_PONTEIRO, 0, linha);
 }
 
 Simbolo* buscar(char *nome) {
@@ -110,6 +128,19 @@ Simbolo* buscar_local(char *nome) {
     return NULL;
 }
 
+static const char *categoria_str(TipoSimbolo cat, int tamanho, char *buf, int buf_sz) {
+    switch (cat) {
+        case SIM_VAR:     return "variavel"; 
+        case SIM_PONTEIRO: return "ponteiro"; 
+        case SIM_ARRAY: {
+            snprintf(buf, buf_sz, "array[%d]", tamanho);
+            return buf;
+        }
+        default: snprintf(buf, buf_sz, "?"); return buf;
+    }
+    return "?";
+}
+
 void imprimir_tabela() {
     if (escopo_atual == NULL) {
         fprintf(stderr, "\n--- TABELA DE SÍMBOLOS VAZIA (NENHUM ESCOPO ATIVO) ---\n");
@@ -118,12 +149,14 @@ void imprimir_tabela() {
     
     Simbolo *atual = escopo_atual->lista_simbolos;
     fprintf(stderr, "\n--- CONTEÚDO DO ESCOPO ATUAL ---\n");
-    fprintf(stderr, "%-15s | %-15s | %-5s\n", "NOME", "TIPO", "LINHA");
+    fprintf(stderr, "%-15s | %-15s | %-12s | %-5s\n", "NOME", "TIPO", "CATEGORIA", "LINHA");
     fprintf(stderr, "--------------------------------------------------\n");
     
     while (atual != NULL) {
-        fprintf(stderr, "%-15s | %-15s | %-5d\n", 
-               atual->nome, atual->tipo, atual->linha);
+        char cat_buf[32];
+        categoria_str(atual->categoria, atual->tamanho_array, cat_buf, sizeof(cat_buf));
+        fprintf(stderr, "%-15s | %-15s | %-12s | %-5d\n", 
+               atual->nome, atual->tipo,cat_buf, atual->linha);
         atual = atual->proximo;
     }
     fprintf(stderr, "--------------------------------------------------\n\n");
@@ -135,7 +168,7 @@ void imprimir_historico_completo() {
     fprintf(stderr, "\n==================================================\n");
     fprintf(stderr, "     HISTÓRICO DE TODOS OS SÍMBOLOS PROCESSADOS   \n");
     fprintf(stderr, "==================================================\n");
-    fprintf(stderr, "%-20s | %-15s | %-5s\n", "NOME", "TIPO", "LINHA");
+    fprintf(stderr, "%-20s | %-15s | %-12s | %-5s\n", "NOME", "TIPO", "CATEGORIA", "LINHA");
     fprintf(stderr, "--------------------------------------------------\n");
     
     if (atual == NULL) {
@@ -143,7 +176,10 @@ void imprimir_historico_completo() {
     }
 
     while (atual != NULL) {
-        fprintf(stderr, "%-20s | %-15s | %-5d\n", atual->nome, atual->tipo, atual->linha);
+        char cat_buf[32];
+        categoria_str(atual->categoria, atual->tamanho_array, cat_buf, sizeof(cat_buf));
+        fprintf(stderr, "%-20s | %-15s | %-12s | %-5d\n", 
+               atual->nome, atual->tipo, cat_buf, atual->linha);
         atual = atual->proximo;
     }
     

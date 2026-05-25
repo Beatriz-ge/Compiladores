@@ -18,6 +18,7 @@ ASTNode* allocate_node(NodeType type) {
     node->type = type;
     node->value = NULL;
     node->var_type = NULL;
+    node->array_size = 0;
     node->left = NULL;
     node->right = NULL;
     node->next = NULL;
@@ -97,6 +98,57 @@ ASTNode* create_program_node(ASTNode* child, ASTNode* next) {
     ASTNode* node = allocate_node(NODE_PROGRAM);
     node->left = child;
     node->next = next;
+    return node;
+}
+
+ASTNode* create_array_decl_node(char* var_type, char* name, int size, ASTNode* init) {
+    ASTNode* node    = allocate_node(NODE_ARRAY_DECL);
+    node->var_type   = strdup(var_type);
+    node->value      = strdup(name);
+    node->array_size = size;
+    node->left       = init;
+    return node;
+}
+
+ASTNode* create_array_access_node(char* name, ASTNode* index) {
+    ASTNode* node = allocate_node(NODE_ARRAY_ACCESS);
+    node->value   = strdup(name);
+    node->left    = index;
+    return node;
+}
+
+ASTNode* create_array_assign_node(char* name, ASTNode* index, ASTNode* expr) {
+    ASTNode* node = allocate_node(NODE_ARRAY_ASSIGN);
+    node->value   = strdup(name);
+    node->left    = index;
+    node->right   = expr;
+    return node;
+}
+
+ASTNode* create_pointer_decl_node(char* var_type, char* name, ASTNode* init) {
+    ASTNode* node  = allocate_node(NODE_PTR_DECL);
+    node->var_type = strdup(var_type);
+    node->value    = strdup(name);
+    node->left     = init;
+    return node;
+}
+
+ASTNode* create_pointer_assign_node(ASTNode* ptr_expr, ASTNode* val_expr) {
+    ASTNode* node = allocate_node(NODE_PTR_ASSIGN);
+    node->left    = ptr_expr;
+    node->right   = val_expr;
+    return node;
+}
+
+ASTNode* create_address_node(ASTNode* operand) {
+    ASTNode* node = allocate_node(NODE_ADDRESS);
+    node->left    = operand;
+    return node;
+}
+
+ASTNode* create_deref_node(ASTNode* operand) {
+    ASTNode* node = allocate_node(NODE_DEREF);
+    node->left    = operand;
     return node;
 }
 
@@ -268,6 +320,74 @@ void generate_python(ASTNode* node, int indent_level) {
             }
             break;
         }
+
+        case NODE_ARRAY_DECL:
+            print_python_indent(indent_level);
+            if (!node->left) {
+                printf("%s = [None] * %d\n", node->value, node->array_size);
+            } else if (node->left->next == NULL && node->left->type != NODE_LITERAL
+                       && node->left->type != NODE_ID) {
+                printf("%s = ", node->value);
+                generate_python(node->left, 0);
+                printf("\n");
+            } else {
+                printf("%s = [", node->value);
+                ASTNode* elem = node->left;
+                while (elem) {
+                    generate_python(elem, 0);
+                    if (elem->next) printf(", ");
+                    elem = elem->next;
+                }
+                printf("]\n");
+            }
+            break;
+        
+        case NODE_ARRAY_ACCESS:
+            printf("%s[", node->value);
+            generate_python(node->left, 0);
+            printf("]");
+            break;   
+
+        case NODE_ARRAY_ASSIGN:
+            print_python_indent(indent_level);
+            printf("%s[", node->value);
+            generate_python(node->left, 0);
+            printf("] = ");
+            generate_python(node->right, 0);
+            printf("\n");
+            break;
+        
+        case NODE_PTR_DECL:
+            print_python_indent(indent_level);
+            if (!node->left) {
+                printf("%s = None  # ponteiro %s*\n", node->value, node->var_type);
+            } else {
+                printf("%s = ", node->value);
+                generate_python(node->left, 0);
+                printf("  # ponteiro %s*\n", node->var_type);
+            }
+            break;
+
+        case NODE_PTR_ASSIGN:
+            print_python_indent(indent_level);
+            if (node->left && node->left->type == NODE_ID) {
+                printf("%s[0] = ", node->left->value);
+            } else {
+                generate_python(node->left, 0);
+                printf("[0] = ");
+            }
+            generate_python(node->right, 0);
+            printf("\n");
+            break;
+
+        case NODE_ADDRESS:
+            generate_python(node->left, 0);
+            break;
+
+        case NODE_DEREF:
+            generate_python(node->left, 0);
+            printf("[0]");
+            break;
     }
 } 
 
@@ -288,6 +408,13 @@ const char* get_node_type_name(NodeType type) {
         case NODE_CONTINUE: return "CONTINUE";
         case NODE_FOR:      return "FOR_LOOP";
         case NODE_UNARY_OP: return "UNARY_OP";
+        case NODE_ARRAY_DECL:   return "ARRAY_DECL";
+        case NODE_ARRAY_ACCESS: return "ARRAY_ACCESS";
+        case NODE_ARRAY_ASSIGN: return "ARRAY_ASSIGN";
+        case NODE_PTR_DECL:     return "PTR_DECL";
+        case NODE_PTR_ASSIGN:   return "PTR_ASSIGN";
+        case NODE_ADDRESS:      return "ADDRESS";
+        case NODE_DEREF:        return "DEREF";
         default:            return "UNKNOWN";
     }
 }

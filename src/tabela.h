@@ -5,10 +5,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef enum {
+    SIM_VAR,
+    SIM_ARRAY,
+    SIM_PONTEIRO
+} TipoSimbolo;
 typedef struct Simbolo {
     char *nome;
     char *tipo;      
-    int linha;       
+    int linha;   
+    TipoSimbolo  categoria;
+    int tamanho_array;
+
     struct Simbolo *proximo;
 } Simbolo;
 
@@ -21,6 +29,8 @@ void entrar_escopo();
 void sair_escopo();
 
 void inserir(char *nome, char *tipo, int linha);
+void inserir_array(char *nome, char *tipo, int tamanho, int linha);
+void inserir_ponteiro(char *nome, char *tipo, int linha);
 Simbolo* buscar(char *nome);
 Simbolo* buscar_local(char *nome); 
 

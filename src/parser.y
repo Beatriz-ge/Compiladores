@@ -54,9 +54,12 @@ void print_indent(void) {
 /* Tokens com valor de string */
 %token <str> STR_LITERAL CHAR_LITERAL NUM ID
 
+%token BIT_AND
+
 %type <str> comentario argumentos tipo parametro parametros
 %type <node> program funcao bloco bloco_da_funcao lista_comandos comando declaracao atribuicao selecao retorno expressao definicao_struct elemento_programa chamada_funcao
 %type <node> for_init for_cond for_incr
+%type <node> lista_init declaracao_array acesso_array
 
 /* Precedências */
 %left OR_LOGICO
@@ -66,7 +69,7 @@ void print_indent(void) {
 %left SOMA SUB
 %left MULT DIV MOD
 %right INC DEC 
-%right NOT UMINUS
+%right NOT UMINUS DEREF
 
 
 %nonassoc LOWER_THAN_ELSE
@@ -100,7 +103,10 @@ program:
 ;
 
 funcao:
-    modificadores tipo ID APARENTESE { entrar_escopo(); } parametros FPARENTESE bloco_da_funcao {
+      tipo ID APARENTESE { entrar_escopo(); } parametros FPARENTESE bloco_da_funcao {
+          $$ = create_func_node($1, $2, $5, $7);
+      }
+    | modificadores tipo ID APARENTESE { entrar_escopo(); } parametros FPARENTESE bloco_da_funcao {
         $$ = create_func_node($2, $3, $6, $8); 
     }
 ;
@@ -193,13 +199,36 @@ modificadores:
 ;
 
 declaracao:
-      modificadores tipo ID PONTO_VIRGULA {
+    tipo ID PONTO_VIRGULA {
+          inserir($2, $1, yylineno);
+          $$ = create_decl_node($1, $2, NULL);
+      }
+    | tipo ID ATRIB expressao PONTO_VIRGULA {
+          inserir($2, $1, yylineno);
+          $$ = create_decl_node($1, $2, $4);
+      }
+      
+    | modificadores tipo ID PONTO_VIRGULA {
           inserir($3, $2, yylineno); 
           $$ = create_decl_node($2, $3, NULL);
       }
     | modificadores tipo ID ATRIB expressao PONTO_VIRGULA { 
           inserir($3, $2, yylineno); 
           $$ = create_decl_node($2, $3, $5);
+      }
+
+    | declaracao_array {
+          $$ = $1;
+      }
+
+    | tipo MULT ID PONTO_VIRGULA {
+        inserir_ponteiro($3, $1, yylineno);
+        $$ = create_pointer_decl_node($1, $3, NULL);
+      }
+
+    | tipo MULT ID ATRIB BIT_AND expressao PONTO_VIRGULA {
+        inserir_ponteiro($3, $1, yylineno);
+        $$ = create_pointer_decl_node($1, $3, create_address_node($6));
       }
 ;
 
@@ -262,6 +291,18 @@ atribuicao:
         if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico...\n"); exit(1); }
         $$ = create_assign_node($1, "-=", create_literal_node("1"));
     }
+
+    | ID A_COLCHETE expressao F_COLCHETE ATRIB expressao PONTO_VIRGULA {
+            if (buscar($1) == NULL) { fprintf(stderr,"Erro Semantico na linha %d: array '%s' nao declarado.\n", yylineno, $1); exit(1); }
+            $$ = create_array_assign_node( $1, $3, $6);
+    }
+
+    | MULT ID ATRIB expressao PONTO_VIRGULA {
+        Simbolo *s = buscar($2);
+        if (s == NULL) {fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $2); exit(1);}
+        if (s->categoria != SIM_PONTEIRO) {fprintf(stderr,"Erro Semantico na linha %d: '%s' nao e um ponteiro, nao pode ser desreferenciado.\n", yylineno, $2); exit(1);}
+        $$ = create_pointer_assign_node(create_id_node($2), $4);
+    }
 ;
 
 selecao:
@@ -318,6 +359,9 @@ expressao:
     | APARENTESE expressao FPARENTESE { $$ = $2; }
     | NOT expressao { $$ = create_unary_op_node("!", $2); }
     | SUB expressao %prec UMINUS { $$ = create_unary_op_node("-", $2); }
+    | acesso_array { $$ = $1; }
+    | BIT_AND ID { $$ = create_address_node(create_id_node($2)); }
+    | MULT expressao %prec DEREF { $$ = create_deref_node($2); }
 ;
 
 chamada_funcao:
@@ -367,6 +411,37 @@ for_incr:
     | ID SUB_ATRIB expressao { $$ = create_assign_node($1, "-=", $3); }
     | ID INC { $$ = create_assign_node($1, "+=", create_literal_node("1")); }
     | ID DEC { $$ = create_assign_node($1, "-=", create_literal_node("1")); }
+;
+
+declaracao_array:
+      tipo ID A_COLCHETE NUM F_COLCHETE PONTO_VIRGULA {
+          inserir_array($2, $1, atoi($4), yylineno);
+          $$ = create_array_decl_node($1, $2, atoi($4), NULL);
+      }
+    | tipo ID A_COLCHETE NUM F_COLCHETE ATRIB expressao PONTO_VIRGULA {
+          inserir_array($2, $1, atoi($4), yylineno);
+          $$ = create_array_decl_node($1, $2, atoi($4), $7);
+      }
+    
+    | tipo ID A_COLCHETE NUM F_COLCHETE ATRIB ACHAVE lista_init FCHAVE PONTO_VIRGULA {
+          inserir_array($2, $1, atoi($4), yylineno);
+          $$ = create_array_decl_node($1, $2, atoi($4), $8);
+      }
+;
+
+acesso_array:
+      ID A_COLCHETE expressao F_COLCHETE {
+          if (buscar($1) == NULL) {fprintf(stderr, "Erro Semantico na linha %d: array '%s' nao declarado.\n", yylineno, $1);
+              exit(1);
+          }
+          $$ = create_array_access_node($1,$3);
+      }
+;
+
+lista_init:
+      expressao {$$ = $1;}
+    | lista_init VIRGULA expressao {ASTNode* curr = $1; while (curr->next != NULL) curr = curr->next; curr->next = $3; $$ = $1;
+      }
 ;
 
 %%
