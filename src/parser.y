@@ -25,7 +25,7 @@ void print_indent(void) {
     #include "ast/ast.h"
 }
 
-%type <str> expressao lista_ids tipo comentario parametros parametro
+
 
 %token INT FLOAT CHAR DOUBLE VOID
 %token <str> COMMENT_LINE COMMENT_BLOCK
@@ -54,9 +54,8 @@ void print_indent(void) {
 /* Tokens com valor de string */
 %token <str> STR_LITERAL CHAR_LITERAL NUM ID
 
-/* 3. AGORA OS %type (Pois o Bison já conhece os tokens acima) */
-%type <str> tipo parametro parametros argumentos
-%type <node> program funcao bloco lista_comandos comando declaracao atribuicao selecao retorno expressao definicao_struct elemento_programa chamada_funcao
+%type <str> comentario argumentos tipo parametro parametros
+%type <node> program funcao bloco bloco_da_funcao lista_comandos comando declaracao atribuicao selecao retorno expressao definicao_struct elemento_programa chamada_funcao
 %type <node> for_init for_cond for_incr
 
 /* Precedências */
@@ -80,11 +79,11 @@ void print_indent(void) {
 elemento_programa:
       funcao { $$ = $1; }
     | MAIN APARENTESE FPARENTESE bloco { 
-          inserir("main", "int", 0, yylineno); 
+          inserir("main", "int", yylineno); 
           $$ = create_func_node("int", "main", "", $4); 
       }
     | tipo MAIN APARENTESE FPARENTESE bloco { 
-          inserir("main", $1, 0, yylineno); 
+          inserir("main", $1, yylineno); 
           $$ = create_func_node($1, "main", "", $5); 
       }
 ;
@@ -101,25 +100,26 @@ program:
 ;
 
 funcao:
-    modificadores tipo ID APARENTESE parametros FPARENTESE {
-        inserir($3, $2, 0, yylineno); 
-    } 
-    bloco {
-        $$ = create_func_node($2, $3, $5, $8); 
+    modificadores tipo ID APARENTESE { entrar_escopo(); } parametros FPARENTESE bloco_da_funcao {
+        $$ = create_func_node($2, $3, $6, $8); 
     }
-    bloco
+;
+
+bloco_da_funcao:
+    ACHAVE lista_comandos FCHAVE {
+        if (indent == 1) {
+            fprintf(stderr, "\n=== TABELA DE SÍMBOLOS DA FUNÇÃO ===\n");
+            imprimir_tabela();
+        }
+        sair_escopo();
+        $$ = create_block_node($2);
+    }
     
 ;
 
 bloco:
-    ACHAVE { indent++; } lista_comandos FCHAVE { 
-        if (indent == 1) {
-            fprintf(stderr, "\n=== TABELA DE SÍMBOLOS COMPLETA ===\n");
-            imprimir_tabela();
-        }
-        remover_escopo(indent); 
-        indent--; 
-        
+    ACHAVE { entrar_escopo(); } lista_comandos FCHAVE { 
+        sair_escopo(); 
         $$ = create_block_node($3);
     }
 ;
@@ -174,43 +174,6 @@ tipo:
     }
 ;
 
-lista_ids:
-      ID {
-
-        if (buscar($1) != NULL) {
-            fprintf(stderr,
-                "Erro Semantico na linha %d: Variavel '%s' ja declarada.\n",
-                yylineno,
-                $1);
-            exit(1);
-        }
-
-        inserir($1, "desconhecido", indent, yylineno);
-
-        print_indent();
-        printf("%s = None\n", $1);
-
-        $$ = strdup($1);
-      }
-
-    | lista_ids VIRGULA ID {
-
-        if (buscar($3) != NULL) {
-            fprintf(stderr,
-                "Erro Semantico na linha %d: Variavel '%s' ja declarada.\n",
-                yylineno,
-                $3);
-            exit(1);
-        }
-
-        inserir($3, "desconhecido", indent, yylineno);
-
-        print_indent();
-        printf("%s = None\n", $3);
-
-        $$ = $1;
-      }
-;
 
 parametros:
     { $$ = strdup(""); }
@@ -220,7 +183,7 @@ parametros:
 
 parametro:
     tipo ID {
-        inserir($2, $1, indent + 1, yylineno);
+        inserir($2, $1, yylineno);
         $$ = strdup($2);
     }
 
@@ -233,11 +196,11 @@ modificadores:
 
 declaracao:
       modificadores tipo ID PONTO_VIRGULA {
-          inserir($3, $2, yylineno);
+          inserir($3, $2, yylineno); 
           $$ = create_decl_node($2, $3, NULL);
       }
     | modificadores tipo ID ATRIB expressao PONTO_VIRGULA { 
-          inserir($3, $2, yylineno);
+          inserir($3, $2, yylineno); 
           $$ = create_decl_node($2, $3, $5);
       }
 ;
@@ -290,6 +253,7 @@ atribuicao:
             exit(1);
         }
         $$ = create_assign_node($1, "%=", $3);
+    }
 
     | ID INC PONTO_VIRGULA {
         if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico...\n"); exit(1); }
@@ -299,47 +263,6 @@ atribuicao:
     | ID DEC PONTO_VIRGULA {
         if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico...\n"); exit(1); }
         $$ = create_assign_node($1, "-=", create_literal_node("1"));
-    }
-;
-
-repeticao:
-    FOR APARENTESE
-    ID ATRIB expressao PONTO_VIRGULA
-    expressao PONTO_VIRGULA
-    ID INC
-    FPARENTESE
-    {
-
-        char var[100];
-        char operador[10];
-        char limite[100];
-
-        if (buscar($3) == NULL) {
-            fprintf(stderr,
-                "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n",
-                yylineno,
-                $3);
-            exit(1);
-        }
-
-        if (strcmp($3, $9) != 0) {
-            fprintf(stderr,
-                "Erro Semantico na linha %d: Variaveis do for inconsistentes.\n",
-                yylineno);
-            exit(1);
-        }
-
-        sscanf($7, "%99s %9s %99s", var, operador, limite);
-
-        print_indent();
-
-        printf("for %s in range(%s, %s):\n", $3, $5, limite);
-
-        indent++;
-    }
-    comando
-    {
-        indent--;
     }
 ;
 
