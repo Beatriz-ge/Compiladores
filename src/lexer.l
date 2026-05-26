@@ -89,6 +89,7 @@ ESCAPE      \\[ntr0"'\\]
 "*"         { return MULT; }
 "/"         { return DIV; }
 "%"         { return MOD; }
+"&"         { return BIT_AND; }
 
 \"([^\"\\\n]|\\.)*\n {
     yylineno--;

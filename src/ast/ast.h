@@ -20,7 +20,14 @@ typedef enum {
     NODE_BREAK,
     NODE_CONTINUE,
     NODE_FOR,
-    NODE_UNARY_OP
+    NODE_UNARY_OP,
+    NODE_ARRAY_DECL,    
+    NODE_ARRAY_ACCESS,
+    NODE_ARRAY_ASSIGN,
+    NODE_PTR_DECL,
+    NODE_PTR_ASSIGN,
+    NODE_ADDRESS,
+    NODE_DEREF     
 } NodeType;
 
 typedef struct ASTNode {
@@ -28,6 +35,7 @@ typedef struct ASTNode {
     
     char* value;       
     char* var_type;    
+    int   array_size;
 
     struct ASTNode* left;
     struct ASTNode* right;
@@ -49,7 +57,13 @@ ASTNode* create_break_node(void);
 ASTNode* create_continue_node(void);
 ASTNode* create_for_node(ASTNode* init, ASTNode* cond, ASTNode* incr, ASTNode* body);
 ASTNode* create_unary_op_node(char* op, ASTNode* expr);
-
+ASTNode* create_array_decl_node(char* var_type, char* name, int size, ASTNode* init);
+ASTNode* create_array_access_node(char* name, ASTNode* index);
+ASTNode* create_array_assign_node(char* name, ASTNode* index, ASTNode* expr);
+ASTNode* create_pointer_decl_node(char* var_type, char* name, ASTNode* init);
+ASTNode* create_pointer_assign_node(ASTNode* ptr_expr, ASTNode* val_expr);
+ASTNode* create_address_node(ASTNode* operand);
+ASTNode* create_deref_node(ASTNode* operand);
 void generate_python(ASTNode* node, int indent_level);
 void print_ast(ASTNode* node, int level);
 
