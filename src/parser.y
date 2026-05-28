@@ -60,6 +60,7 @@ void print_indent(void) {
 %type <node> program funcao bloco bloco_da_funcao lista_comandos comando declaracao atribuicao selecao retorno expressao definicao_struct elemento_programa chamada_funcao
 %type <node> for_init for_cond for_incr
 %type <node> lista_init declaracao_array acesso_array
+%type <node> lista_dimensoes lista_indices
 
 /* Precedências */
 %left OR_LOGICO
@@ -165,6 +166,10 @@ comando:
     | FOR APARENTESE for_init PONTO_VIRGULA for_cond PONTO_VIRGULA for_incr FPARENTESE comando {
         $$ = create_for_node($3, $5, $7, $9);
     }
+
+    | acesso_array ATRIB expressao PONTO_VIRGULA {
+         $$ = create_array_assign_node_v2($1, $3);
+    }
 ;
 
 tipo:
@@ -192,7 +197,7 @@ parametro:
     }
 
 modificadores:
-    | CONST
+      CONST
     | STATIC
     | CONST STATIC
     | STATIC CONST
@@ -290,11 +295,6 @@ atribuicao:
     | ID DEC PONTO_VIRGULA {
         if (buscar($1) == NULL) { fprintf(stderr, "Erro Semantico...\n"); exit(1); }
         $$ = create_assign_node($1, "-=", create_literal_node("1"));
-    }
-
-    | ID A_COLCHETE expressao F_COLCHETE ATRIB expressao PONTO_VIRGULA {
-            if (buscar($1) == NULL) { fprintf(stderr,"Erro Semantico na linha %d: array '%s' nao declarado.\n", yylineno, $1); exit(1); }
-            $$ = create_array_assign_node( $1, $3, $6);
     }
 
     | MULT ID ATRIB expressao PONTO_VIRGULA {
@@ -414,27 +414,47 @@ for_incr:
 ;
 
 declaracao_array:
-      tipo ID A_COLCHETE NUM F_COLCHETE PONTO_VIRGULA {
-          inserir_array($2, $1, atoi($4), yylineno);
-          $$ = create_array_decl_node($1, $2, atoi($4), NULL);
+      tipo ID lista_dimensoes PONTO_VIRGULA {
+          inserir_array($2, $1, 0, yylineno);;
+          $$ = create_multi_array_decl_node($1, $2, $3, NULL);
       }
-    | tipo ID A_COLCHETE NUM F_COLCHETE ATRIB expressao PONTO_VIRGULA {
-          inserir_array($2, $1, atoi($4), yylineno);
-          $$ = create_array_decl_node($1, $2, atoi($4), $7);
+    | tipo ID lista_dimensoes ATRIB ACHAVE lista_init FCHAVE PONTO_VIRGULA {
+          inserir_array($2, $1, 0, yylineno);
+          $$ = create_multi_array_decl_node($1, $2, $3, $6);
       }
-    
-    | tipo ID A_COLCHETE NUM F_COLCHETE ATRIB ACHAVE lista_init FCHAVE PONTO_VIRGULA {
-          inserir_array($2, $1, atoi($4), yylineno);
-          $$ = create_array_decl_node($1, $2, atoi($4), $8);
+;
+
+lista_dimensoes:
+      A_COLCHETE NUM F_COLCHETE {
+          $$ = create_dimension_node(atoi($2), NULL);
+      }
+    | lista_dimensoes A_COLCHETE NUM F_COLCHETE {
+          // Anexa a nova dimensão no final da lista de dimensões
+          ASTNode* curr = $1;
+          while (curr->next != NULL) curr = curr->next;
+          curr->next = create_dimension_node(atoi($3), NULL);
+          $$ = $1;
       }
 ;
 
 acesso_array:
-      ID A_COLCHETE expressao F_COLCHETE {
+      ID lista_indices {
           if (buscar($1) == NULL) {fprintf(stderr, "Erro Semantico na linha %d: array '%s' nao declarado.\n", yylineno, $1);
               exit(1);
           }
-          $$ = create_array_access_node($1,$3);
+          $$ = create_multi_array_access_node($1,$2);
+      }
+;
+
+lista_indices:
+      A_COLCHETE expressao F_COLCHETE {
+          $$ = create_index_node($2, NULL);
+      }
+    | lista_indices A_COLCHETE expressao F_COLCHETE {
+          ASTNode* curr = $1;
+          while (curr->next != NULL) curr = curr->next;
+          curr->next = create_index_node($3, NULL);
+          $$ = $1;
       }
 ;
 

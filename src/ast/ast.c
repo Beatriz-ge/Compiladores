@@ -388,6 +388,65 @@ void generate_python(ASTNode* node, int indent_level) {
             generate_python(node->left, 0);
             printf("[0]");
             break;
+
+        case NODE_MULTI_ARRAY_DECL: {
+            print_python_indent(indent_level);
+            printf("%s = ", node->value);
+            ASTNode* dim = node->left;
+            int dim_counts = 0;
+            int tam_dimensoes[10];
+            while (dim && dim_counts < 10) {
+                tam_dimensoes[dim_counts++] = atoi(dim->value);
+                dim = dim->next;
+            }
+            if (node->right) {
+                printf("[");
+                ASTNode* elem = node->right;
+                while (elem) {
+                    generate_python(elem, 0);
+                    if (elem->next) printf(", ");
+                    elem = elem->next;
+                }
+                printf("]\n");
+            } else {
+                for (int i = 0; i < dim_counts; i++) {
+                    printf("[");
+                }
+                printf("0");
+                for (int i = dim_counts - 1; i >= 0; i--) {
+                    printf(" for _ in range(%d)]", tam_dimensoes[i]);
+                }
+                printf("\n");
+            }
+            break;
+        }
+
+        case NODE_MULTI_ARRAY_ACCESS:
+            printf("%s", node->value);
+            ASTNode* idx = node->left;
+            while (idx) {
+                printf("[");
+                generate_python(idx->left, 0);
+                printf("]");
+                idx = idx->next;
+            }
+            break;
+
+        case NODE_ARRAY_ASSIGN_V2:
+            print_python_indent(indent_level);
+            generate_python(node->left, 0); 
+            printf(" = ");
+            generate_python(node->right, 0);
+            printf("\n");
+            break;
+
+        case NODE_DIMENSION:
+            if (node->value) printf("%s", node->value);
+            break;
+
+        case NODE_INDEX:
+            if (node->left) generate_python(node->left, 0);
+            break;
     }
 } 
 
@@ -415,6 +474,11 @@ const char* get_node_type_name(NodeType type) {
         case NODE_PTR_ASSIGN:   return "PTR_ASSIGN";
         case NODE_ADDRESS:      return "ADDRESS";
         case NODE_DEREF:        return "DEREF";
+        case NODE_MULTI_ARRAY_DECL:   return "MULTI_ARRAY_DECL";
+        case NODE_MULTI_ARRAY_ACCESS: return "MULTI_ARRAY_ACCESS";
+        case NODE_DIMENSION:          return "DIMENSION";
+        case NODE_INDEX:              return "INDEX";
+        case NODE_ARRAY_ASSIGN_V2:    return "MULTI_ARRAY_ASSIGN";
         default:            return "UNKNOWN";
     }
 }
@@ -461,6 +525,16 @@ void print_ast(ASTNode* node, int level) {
             if (node->left)  print_ast(node->left, level + 1);
             if (node->right) print_ast(node->right, level + 1);
         } 
+        else if (node->type == NODE_MULTI_ARRAY_DECL) {
+            if (node->left)  print_ast(node->left, level + 1);
+            if (node->right) print_ast(node->right, level + 1);
+        }
+        else if (node->type == NODE_MULTI_ARRAY_ACCESS) {
+            if (node->left)  print_ast(node->left, level + 1);
+        }
+        else if (node->type == NODE_INDEX) {
+            if (node->left)  print_ast(node->left, level + 1);
+        }
         else {
             if (node->left)  print_ast(node->left, level + 1);
             if (node->right) print_ast(node->right, level + 1);
@@ -505,5 +579,44 @@ ASTNode* create_unary_op_node(char* op, ASTNode* expr) {
     ASTNode* node = allocate_node(NODE_UNARY_OP);
     node->value = strdup(op);
     node->left = expr;
+    return node;
+}
+
+ASTNode* create_dimension_node(int size, ASTNode* next) {
+    ASTNode* node = allocate_node(NODE_DIMENSION);
+    char buffer[32];
+    sprintf(buffer, "%d", size);
+    node->value = strdup(buffer);
+    node->next = next;
+    return node;
+}
+
+ASTNode* create_index_node(ASTNode* expr, ASTNode* next) {
+    ASTNode* node = allocate_node(NODE_INDEX);
+    node->left = expr;
+    node->next = next;
+    return node;
+}
+
+ASTNode* create_multi_array_decl_node(char* tipo, char* id, ASTNode* dim_list, ASTNode* init_list) {
+    ASTNode* node = allocate_node(NODE_MULTI_ARRAY_DECL);
+    node->value = strdup(id);
+    node->var_type = strdup(tipo);
+    node->left = dim_list;
+    node->right = init_list;
+    return node;
+}
+
+ASTNode* create_multi_array_access_node(char* id, ASTNode* idx_list) {
+    ASTNode* node = allocate_node(NODE_MULTI_ARRAY_ACCESS);
+    node->value = strdup(id);
+    node->left = idx_list;
+    return node;
+}
+
+ASTNode* create_array_assign_node_v2(ASTNode* array_access, ASTNode* expr) {
+    ASTNode* node = allocate_node(NODE_ARRAY_ASSIGN_V2);
+    node->left = array_access;
+    node->right = expr;
     return node;
 }
