@@ -2,14 +2,14 @@ CC = gcc
 LEX = flex
 YACC = bison
 CFLAGS = -Wall
-
 SRC = src
 BUILD = build
 BIN = bin
 
-# Adicionado o $(BUILD)/ast.o na lista de dependências
 TARGET = $(BIN)/compilador
 OBJS = $(BUILD)/lex.yy.o $(BUILD)/parser.tab.o $(BUILD)/main.o $(BUILD)/tabela.o $(BUILD)/ast.o
+
+COVERAGE_FLAGS = --coverage -fprofile-arcs -ftest-coverage -O0
 
 all: $(TARGET)
 
@@ -17,31 +17,57 @@ $(TARGET): $(OBJS)
 	@mkdir -p $(BIN)
 	$(CC) $(CFLAGS) $^ -o $@ -lfl
 
-# Regra para o Bison
+coverage: CFLAGS += $(COVERAGE_FLAGS)
+coverage: clean $(TARGET)
+	@echo ""
+	@echo "Compilador instrumentado para coverage. Rode:"
+	@echo "  bash tests/run_tests.sh --coverage"
+
+report:
+	@echo ""
+	@mkdir -p coverage_report
+	@lcov --capture \
+	      --directory $(BUILD) \
+	      --output-file coverage_report/coverage.info \
+	      --ignore-errors mismatch \
+	      2>/dev/null; true
+	@lcov --remove coverage_report/coverage.info \
+	      '/usr/*' '*/build/lex.yy.c' '*/build/parser.tab.c' \
+	      --output-file coverage_report/coverage_filtered.info \
+	      2>/dev/null; true
+	@echo "=================================================="
+	@echo "       COBERTURA DE LINHAS (gcov)"
+	@echo "=================================================="
+	@lcov --summary coverage_report/coverage_filtered.info 2>&1 \
+	    | grep -E "lines|functions" \
+	    | awk '{ printf "  %-12s %s\n", $$1, $$2 }'; true
+	@echo "=================================================="
+
+clean-coverage:
+	@find $(BUILD) -name "*.gcda" -delete
+	@find $(BUILD) -name "*.gcno" -delete
+	@rm -rf coverage_report
+	@echo "Arquivos de coverage removidos."
+
 $(BUILD)/parser.tab.c $(BUILD)/parser.tab.h: $(SRC)/parser.y
 	@mkdir -p $(BUILD)
 	$(YACC) -d -o $(BUILD)/parser.tab.c $(SRC)/parser.y
 
-# Regra para o Flex 
 $(BUILD)/lex.yy.c: $(SRC)/lexer.l $(BUILD)/parser.tab.h
 	@mkdir -p $(BUILD)
 	$(LEX) -o $(BUILD)/lex.yy.c $(SRC)/lexer.l
 
-# Regra genérica para objetos cujos .c estão no BUILD 
 $(BUILD)/%.o: $(BUILD)/%.c
 	$(CC) $(CFLAGS) -I$(SRC) -I$(BUILD) -c $< -o $@
 
-# Regra para compilar o TABELA.C 
 $(BUILD)/tabela.o: $(SRC)/tabela.c $(SRC)/tabela.h
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -I$(SRC) -c $(SRC)/tabela.c -o $@
 
-# NOVO: Regra para compilar o AST.C que está dentro da pasta src/ast/
 $(BUILD)/ast.o: $(SRC)/ast/ast.c $(SRC)/ast/ast.h
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -I$(SRC) -c $(SRC)/ast/ast.c -o $@
 
-# Regra para o MAIN.C (Adicionado o -I$(SRC)/ast para achar o header da árvore)
 $(BUILD)/main.o: $(SRC)/main.c $(BUILD)/parser.tab.h
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -I$(SRC) -I$(SRC)/ast -I$(BUILD) -c $(SRC)/main.c -o $@
