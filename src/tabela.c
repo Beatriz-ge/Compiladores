@@ -154,9 +154,9 @@ void imprimir_tabela() {
     
     while (atual != NULL) {
         char cat_buf[32];
-        categoria_str(atual->categoria, atual->tamanho_array, cat_buf, sizeof(cat_buf));
+        const char* cat_nome = categoria_str(atual->categoria, atual->tamanho_array, cat_buf, sizeof(cat_buf));
         fprintf(stderr, "%-15s | %-15s | %-12s | %-5d\n", 
-               atual->nome, atual->tipo,cat_buf, atual->linha);
+               atual->nome, atual->tipo, cat_nome, atual->linha);
         atual = atual->proximo;
     }
     fprintf(stderr, "--------------------------------------------------\n\n");
@@ -177,9 +177,9 @@ void imprimir_historico_completo() {
 
     while (atual != NULL) {
         char cat_buf[32];
-        categoria_str(atual->categoria, atual->tamanho_array, cat_buf, sizeof(cat_buf));
+        const char* cat_nome = categoria_str(atual->categoria, atual->tamanho_array, cat_buf, sizeof(cat_buf));
         fprintf(stderr, "%-20s | %-15s | %-12s | %-5d\n", 
-               atual->nome, atual->tipo, cat_buf, atual->linha);
+               atual->nome, atual->tipo, cat_nome, atual->linha);
         atual = atual->proximo;
     }
     
