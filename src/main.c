@@ -11,6 +11,7 @@ extern FILE* yyin;
 extern ASTNode* global_ast_root; 
 
 int main(int argc, char** argv) {
+    inicializar_tabela_simbolos();
     if (argc > 1) {
         FILE* file = fopen(argv[1], "r");
         if (!file) {

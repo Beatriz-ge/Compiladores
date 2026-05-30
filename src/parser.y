@@ -88,6 +88,7 @@ void print_indent(void) {
 
 elemento_programa:
       funcao { $$ = $1; }
+    | declaracao { $$ = $1; }
     | MAIN APARENTESE FPARENTESE bloco { 
           inserir("main", "int", yylineno); 
           $$ = create_func_node("int", "main", "", $4); 
