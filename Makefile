@@ -9,7 +9,7 @@ BIN = bin
 
 # Adicionado o $(BUILD)/ast.o na lista de dependências
 TARGET = $(BIN)/compilador
-OBJS = $(BUILD)/lex.yy.o $(BUILD)/parser.tab.o $(BUILD)/main.o $(BUILD)/tabela.o $(BUILD)/ast.o $(BUILD)/semantic.o
+OBJS = $(BUILD)/lex.yy.o $(BUILD)/parser.tab.o $(BUILD)/main.o $(BUILD)/tabela.o $(BUILD)/ast.o $(BUILD)/semantic.o $(BUILD)/tabela_funcoes.o
 
 all: $(TARGET)
 
@@ -49,6 +49,10 @@ $(BUILD)/main.o: $(SRC)/main.c $(BUILD)/parser.tab.h
 $(BUILD)/semantic.o: $(SRC)/semantic.c $(SRC)/semantic.h
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -I$(SRC) -I$(SRC)/ast -c $(SRC)/semantic.c -o $@
+
+$(BUILD)/tabela_funcoes.o: $(SRC)/tabela_funcoes.c $(SRC)/tabela_funcoes.h
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -I$(SRC) -c $(SRC)/tabela_funcoes.c -o $@
 
 clean:
 	rm -rf $(BUILD) $(BIN)
