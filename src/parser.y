@@ -3,6 +3,7 @@
 #include "tabela.h"
 #include "ast/ast.h"
 #include "semantic.h"
+#include "tabela_funcoes.h"
 
 ASTNode* global_ast_root = NULL;
 
@@ -18,7 +19,9 @@ void print_indent(void) {
 /* 1. O %union vem primeiro */
 %union {
     char* str;
+    int   num;
     struct ASTNode* node;
+    
 }
 
 %code requires {
@@ -63,6 +66,7 @@ void print_indent(void) {
 %type <node> for_init for_cond for_incr
 %type <node> lista_init declaracao_array acesso_array
 %type <node> lista_dimensoes lista_indices
+%type <num> num_args
 
 /* Precedências */
 %left OR_LOGICO
@@ -108,10 +112,12 @@ program:
 
 funcao:
       tipo ID APARENTESE { entrar_escopo(); } parametros FPARENTESE bloco_da_funcao {
+          registrar_funcao($2, contar_params($5), yylineno);
           $$ = create_func_node($1, $2, $5, $7);
       }
     | modificadores tipo ID APARENTESE { entrar_escopo(); } parametros FPARENTESE bloco_da_funcao {
-        $$ = create_func_node($2, $3, $6, $8); 
+          registrar_funcao($3, contar_params($6), yylineno);
+          $$ = create_func_node($2, $3, $6, $8); 
     }
 ;
 
@@ -368,7 +374,8 @@ expressao:
 ;
 
 chamada_funcao:
-    ID APARENTESE argumentos FPARENTESE {
+     ID APARENTESE argumentos FPARENTESE {
+        checar_chamada_funcao($1, contar_args($3), yylineno);
         char* llamada_str;
         asprintf(&llamada_str, "%s(%s)", $1, $3);
         $$ = create_literal_node(llamada_str);
