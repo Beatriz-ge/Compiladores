@@ -305,23 +305,43 @@ void generate_python(ASTNode* node, int indent_level) {
             break;
 
         case NODE_IF: {
-                indent_print(indent_level);
-                printf("if ");
-                generate_python(node->left, 0);
-                printf(":\n");
 
-                ASTNode* branches = node->right;
-                if (branches) {
-                    generate_python(branches->left, indent_level + 1);
+            indent_print(indent_level);
+            printf("if ");
+            generate_python(node->left, 0);
+            printf(":\n");
 
-                    if (branches->right) {
+            ASTNode* branches = node->right;
+            if (branches) {
+                generate_python(branches->left, indent_level + 1);
+
+                ASTNode* else_branch = branches->right;
+                while (else_branch != NULL) {
+                    if (else_branch->type == NODE_IF) {
+                        /* else if -> elif */
+                        indent_print(indent_level);
+                        printf("elif ");
+                        generate_python(else_branch->left, 0);
+                        printf(":\n");
+
+                        ASTNode* elif_branches = else_branch->right;
+                        if (elif_branches) {
+                            generate_python(elif_branches->left, indent_level + 1);
+                            else_branch = elif_branches->right;
+                        } else {
+                            else_branch = NULL;
+                        }
+                    } else {
+                        
                         indent_print(indent_level);
                         printf("else:\n");
-                        generate_python(branches->right, indent_level + 1);
+                        generate_python(else_branch, indent_level + 1);
+                        else_branch = NULL;
                     }
                 }
-                break;
             }
+            break;
+        }
 
         case NODE_ARRAY_DECL:
             indent_print(indent_level);
