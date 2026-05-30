@@ -9,7 +9,7 @@ BIN = bin
 
 # Adicionado o $(BUILD)/ast.o na lista de dependências
 TARGET = $(BIN)/compilador
-OBJS = $(BUILD)/lex.yy.o $(BUILD)/parser.tab.o $(BUILD)/main.o $(BUILD)/tabela.o $(BUILD)/ast.o
+OBJS = $(BUILD)/lex.yy.o $(BUILD)/parser.tab.o $(BUILD)/main.o $(BUILD)/tabela.o $(BUILD)/ast.o $(BUILD)/semantic.o
 
 all: $(TARGET)
 
@@ -29,7 +29,7 @@ $(BUILD)/lex.yy.c: $(SRC)/lexer.l $(BUILD)/parser.tab.h
 
 # Regra genérica para objetos cujos .c estão no BUILD 
 $(BUILD)/%.o: $(BUILD)/%.c
-	$(CC) $(CFLAGS) -I$(SRC) -I$(BUILD) -c $< -o $@
+	$(CC) $(CFLAGS) -I$(SRC) -I$(SRC)/ast -I$(BUILD) -c $< -o $@
 
 # Regra para compilar o TABELA.C 
 $(BUILD)/tabela.o: $(SRC)/tabela.c $(SRC)/tabela.h
@@ -45,6 +45,10 @@ $(BUILD)/ast.o: $(SRC)/ast/ast.c $(SRC)/ast/ast.h
 $(BUILD)/main.o: $(SRC)/main.c $(BUILD)/parser.tab.h
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -I$(SRC) -I$(SRC)/ast -I$(BUILD) -c $(SRC)/main.c -o $@
+
+$(BUILD)/semantic.o: $(SRC)/semantic.c $(SRC)/semantic.h
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -I$(SRC) -I$(SRC)/ast -c $(SRC)/semantic.c -o $@
 
 clean:
 	rm -rf $(BUILD) $(BIN)
