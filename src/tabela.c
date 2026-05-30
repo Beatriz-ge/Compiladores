@@ -17,12 +17,22 @@ static SimboloHistorico* historico_fim = NULL;
 
 Escopo *escopo_atual = NULL;
 
+void inicializar_tabela_simbolos() {
+    if (escopo_atual == NULL) {
+        escopo_atual = (Escopo*) malloc(sizeof(Escopo));
+        escopo_atual->lista_simbolos = NULL;
+        escopo_atual->escopo_pai = NULL; 
+    }
+}
+
 void entrar_escopo() {
+    if (escopo_atual == NULL) {
+        inicializar_tabela_simbolos();
+    }
+    
     Escopo *novo_escopo = (Escopo*) malloc(sizeof(Escopo));
     novo_escopo->lista_simbolos = NULL;
-    
     novo_escopo->escopo_pai = escopo_atual;
-    
     escopo_atual = novo_escopo;
 }
 
@@ -48,7 +58,7 @@ void sair_escopo() {
 static void inserir_simbolo(char* nome, char *tipo, TipoSimbolo cat, int tamanho, int linha) {
     
     if (escopo_atual == NULL) {
-        entrar_escopo();
+        inicializar_tabela_simbolos();
     }
 
     if (buscar_local(nome) != NULL) {

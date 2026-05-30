@@ -27,6 +27,7 @@ typedef struct Escopo {
 
 void entrar_escopo();
 void sair_escopo();
+void inicializar_tabela_simbolos();
 
 void inserir(char *nome, char *tipo, int linha);
 void inserir_array(char *nome, char *tipo, int tamanho, int linha);
