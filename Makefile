@@ -7,7 +7,16 @@ BUILD = build
 BIN = bin
 
 TARGET = $(BIN)/compilador
-OBJS = $(BUILD)/lex.yy.o $(BUILD)/parser.tab.o $(BUILD)/main.o $(BUILD)/tabela.o $(BUILD)/ast.o $(BUILD)/semantic.o $(BUILD)/tabela_funcoes.o
+
+OBJS = \
+	$(BUILD)/lex.yy.o \
+	$(BUILD)/parser.tab.o \
+	$(BUILD)/main.o \
+	$(BUILD)/tabela.o \
+	$(BUILD)/ast.o \
+	$(BUILD)/indent_manager.o \
+	$(BUILD)/semantic.o \
+	$(BUILD)/tabela_funcoes.o
 
 COVERAGE_FLAGS = --coverage -fprofile-arcs -ftest-coverage -O0
 
@@ -66,7 +75,11 @@ $(BUILD)/tabela.o: $(SRC)/tabela.c $(SRC)/tabela.h
 
 $(BUILD)/ast.o: $(SRC)/ast/ast.c $(SRC)/ast/ast.h
 	@mkdir -p $(BUILD)
-	$(CC) $(CFLAGS) -I$(SRC) -c $(SRC)/ast/ast.c -o $@
+	$(CC) $(CFLAGS) -I$(SRC) -I$(SRC)/ast -c $(SRC)/ast/ast.c -o $@
+
+$(BUILD)/indent_manager.o: $(SRC)/ast/indent_manager.c $(SRC)/ast/indent_manager.h
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -I$(SRC) -I$(SRC)/ast -c $(SRC)/ast/indent_manager.c -o $@
 
 $(BUILD)/main.o: $(SRC)/main.c $(BUILD)/parser.tab.h
 	@mkdir -p $(BUILD)
