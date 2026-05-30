@@ -4,6 +4,7 @@
 #include "tabela.h"
 #include "common.h"
 #include "ast.h"
+#include "semantic.h"
 
 extern int yyparse();
 extern FILE* yyin;
@@ -44,6 +45,9 @@ int main(int argc, char** argv) {
         close(stdout_backup);
 
         fprintf(stderr, "===================================\n\n");
+
+        /* ---- Análise Semântica de Tipos ---- */
+        analisar_semantico(global_ast_root);
 
         generate_python(global_ast_root, 0);
         

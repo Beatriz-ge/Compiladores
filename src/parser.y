@@ -2,6 +2,7 @@
 #include "common.h"
 #include "tabela.h"
 #include "ast/ast.h"
+#include "semantic.h"
 
 ASTNode* global_ast_root = NULL;
 
@@ -23,6 +24,7 @@ void print_indent(void) {
 %code requires {
     #include "common.h"
     #include "ast/ast.h"
+    #include "semantic.h"
 }
 
 
@@ -344,11 +346,11 @@ expressao:
     | chamada_funcao { $$ = $1; } 
     | STR_LITERAL   { $$ = create_literal_node($1); }
     | CHAR_LITERAL  { $$ = create_literal_node($1); }
-    | expressao SOMA expressao { $$ = create_binary_op_node("+", $1, $3); }
-    | expressao SUB expressao  { $$ = create_binary_op_node("-", $1, $3); }
-    | expressao MULT expressao { $$ = create_binary_op_node("*", $1, $3); }
-    | expressao DIV expressao  { $$ = create_binary_op_node("/", $1, $3); }
-    | expressao MOD expressao  { $$ = create_binary_op_node("%", $1, $3); }
+    | expressao SOMA expressao { $$ = create_binary_op_node("+", $1, $3); checar_operacao_binaria_parser("+", $1, $3, yylineno); }
+    | expressao SUB expressao  { $$ = create_binary_op_node("-", $1, $3); checar_operacao_binaria_parser("-", $1, $3, yylineno); }
+    | expressao MULT expressao { $$ = create_binary_op_node("*", $1, $3); checar_operacao_binaria_parser("*", $1, $3, yylineno); }
+    | expressao DIV expressao  { $$ = create_binary_op_node("/", $1, $3); checar_operacao_binaria_parser("/", $1, $3, yylineno); }
+    | expressao MOD expressao  { $$ = create_binary_op_node("%", $1, $3); checar_operacao_binaria_parser("%", $1, $3, yylineno); }
     | expressao TK_EQ expressao { $$ = create_binary_op_node("==", $1, $3); }
     | expressao TK_NE expressao { $$ = create_binary_op_node("!=", $1, $3); }
     | expressao TK_LE expressao { $$ = create_binary_op_node("<=", $1, $3); }

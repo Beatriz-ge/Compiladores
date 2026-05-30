@@ -7,7 +7,7 @@ BUILD = build
 BIN = bin
 
 TARGET = $(BIN)/compilador
-OBJS = $(BUILD)/lex.yy.o $(BUILD)/parser.tab.o $(BUILD)/main.o $(BUILD)/tabela.o $(BUILD)/ast.o
+OBJS = $(BUILD)/lex.yy.o $(BUILD)/parser.tab.o $(BUILD)/main.o $(BUILD)/tabela.o $(BUILD)/ast.o $(BUILD)/semantic.o
 
 COVERAGE_FLAGS = --coverage -fprofile-arcs -ftest-coverage -O0
 
@@ -58,7 +58,7 @@ $(BUILD)/lex.yy.c: $(SRC)/lexer.l $(BUILD)/parser.tab.h
 	$(LEX) -o $(BUILD)/lex.yy.c $(SRC)/lexer.l
 
 $(BUILD)/%.o: $(BUILD)/%.c
-	$(CC) $(CFLAGS) -I$(SRC) -I$(BUILD) -c $< -o $@
+	$(CC) $(CFLAGS) -I$(SRC) -I$(SRC)/ast -I$(BUILD) -c $< -o $@
 
 $(BUILD)/tabela.o: $(SRC)/tabela.c $(SRC)/tabela.h
 	@mkdir -p $(BUILD)
@@ -71,6 +71,10 @@ $(BUILD)/ast.o: $(SRC)/ast/ast.c $(SRC)/ast/ast.h
 $(BUILD)/main.o: $(SRC)/main.c $(BUILD)/parser.tab.h
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -I$(SRC) -I$(SRC)/ast -I$(BUILD) -c $(SRC)/main.c -o $@
+
+$(BUILD)/semantic.o: $(SRC)/semantic.c $(SRC)/semantic.h
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -I$(SRC) -I$(SRC)/ast -c $(SRC)/semantic.c -o $@
 
 clean:
 	rm -rf $(BUILD) $(BIN)
