@@ -43,6 +43,9 @@ ESCAPE      \\[ntr0"'\\]
 "default"   { return DEFAULT; }
 "return"    { return RETURN; }
 
+"printf"    { return PRINTF; }
+"scanf"     { return SCANF; }
+
 "for"       { return FOR; }
 "while"     { return WHILE; }
 "do"        { return DO; }
