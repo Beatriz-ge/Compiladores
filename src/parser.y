@@ -45,6 +45,7 @@ void print_indent(void) {
 %token IF SWITCH CASE DEFAULT RETURN
 %token FOR WHILE DO BREAK CONTINUE
 %token ELSE
+%token PRINTF SCANF
 
 
 %token STRUCT TYPEDEF SIZEOF CONST STATIC
@@ -66,7 +67,7 @@ void print_indent(void) {
 %type <node> for_init for_cond for_incr
 %type <node> lista_init declaracao_array acesso_array
 %type <node> lista_dimensoes lista_indices
-%type <num> num_args
+
 
 /* Precedências */
 %left OR_LOGICO
@@ -158,6 +159,13 @@ comando:
       declaracao         { $$ = $1; }
     | atribuicao         { $$ = $1; }
     | selecao            { $$ = $1; }
+    | PRINTF APARENTESE expressao FPARENTESE PONTO_VIRGULA {
+          $$ = create_printf_node($3);
+      }
+
+    | SCANF APARENTESE STR_LITERAL VIRGULA BIT_AND ID FPARENTESE PONTO_VIRGULA {
+          $$ = create_scanf_node($6);
+      }
     | retorno            { $$ = $1; }
     | bloco              { $$ = $1; }
     | expressao PONTO_VIRGULA { $$ = $1; }
@@ -204,6 +212,7 @@ parametro:
         inserir($2, $1, yylineno);
         $$ = strdup($2);
     }
+;
 
 modificadores:
       CONST

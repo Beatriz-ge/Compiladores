@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include "ast.h"
 #include "indent_manager.h"
+#include "tabela.h"
 
 static ASTNode* current_loop_incr = NULL;
 
@@ -193,12 +194,28 @@ void generate_python(ASTNode* node, int indent_level) {
             }
             break;
 
-        case NODE_ASSIGN:
+        case NODE_ASSIGN: {
             indent_print(indent_level);
+
+            Simbolo *s = buscar(node->value);
+
             printf("%s %s ", node->value, node->var_type);
-            generate_python(node->left, 0);
+
+            if (s &&
+                s->categoria == SIM_PONTEIRO &&
+                node->left &&
+                node->left->type != NODE_ADDRESS) {
+
+                printf("[");
+                generate_python(node->left, 0);
+                printf("]");
+            } else {
+                generate_python(node->left, 0);
+            }
+
             printf("\n");
             break;
+        }
 
         case NODE_BINARY_OP:
             printf("(");
@@ -403,7 +420,9 @@ void generate_python(ASTNode* node, int indent_level) {
             break;
 
         case NODE_ADDRESS:
+            printf("[");
             generate_python(node->left, 0);
+            printf("]");
             break;
 
         case NODE_DEREF:
@@ -469,6 +488,18 @@ void generate_python(ASTNode* node, int indent_level) {
         case NODE_INDEX:
             if (node->left) generate_python(node->left, 0);
             break;
+
+        case NODE_PRINTF:
+            indent_print(indent_level);
+            printf("print(");
+            generate_python(node->left, 0);
+            printf(")\n");
+            break;
+
+        case NODE_SCANF:
+            indent_print(indent_level);
+            printf("%s = input()\n", node->value);
+            break;
     }
 } 
 
@@ -501,6 +532,8 @@ const char* get_node_type_name(NodeType type) {
         case NODE_DIMENSION:          return "DIMENSION";
         case NODE_INDEX:              return "INDEX";
         case NODE_ARRAY_ASSIGN_V2:    return "MULTI_ARRAY_ASSIGN";
+        case NODE_PRINTF: return "PRINTF";
+        case NODE_SCANF:  return "SCANF";
         default:            return "UNKNOWN";
     }
 }
@@ -640,5 +673,17 @@ ASTNode* create_array_assign_node_v2(ASTNode* array_access, ASTNode* expr) {
     ASTNode* node = allocate_node(NODE_ARRAY_ASSIGN_V2);
     node->left = array_access;
     node->right = expr;
+    return node;
+}
+
+ASTNode* create_printf_node(ASTNode* expr) {
+    ASTNode* node = allocate_node(NODE_PRINTF);
+    node->left = expr;
+    return node;
+}
+
+ASTNode* create_scanf_node(char* var) {
+    ASTNode* node = allocate_node(NODE_SCANF);
+    node->value = strdup(var);
     return node;
 }

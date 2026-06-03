@@ -32,7 +32,9 @@ typedef enum {
     NODE_MULTI_ARRAY_ACCESS,
     NODE_DIMENSION,
     NODE_INDEX,
-    NODE_ARRAY_ASSIGN_V2   
+    NODE_PRINTF,
+    NODE_SCANF,
+    NODE_ARRAY_ASSIGN_V2
 } NodeType;
 
 typedef struct ASTNode {
@@ -74,6 +76,8 @@ ASTNode* create_index_node(ASTNode* expr, ASTNode* next);
 ASTNode* create_multi_array_decl_node(char* tipo, char* id, ASTNode* dim_list, ASTNode* init_list);
 ASTNode* create_multi_array_access_node(char* id, ASTNode* idx_list);
 ASTNode* create_array_assign_node_v2(ASTNode* array_access, ASTNode* expr);
+ASTNode* create_printf_node(ASTNode* expr);
+ASTNode* create_scanf_node(char* var);
 void generate_python(ASTNode* node, int indent_level);
 void print_ast(ASTNode* node, int level);
 
