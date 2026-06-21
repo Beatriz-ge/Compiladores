@@ -184,42 +184,12 @@ void analisar_semantico(ASTNode* node) {
             analisar_semantico(node->right);
             return;
         case NODE_FUNC:
-            analisar_semantico(node->right);
+            analisar_semantico(node->left);
             return;
         case NODE_BLOCK:
             analisar_semantico(node->left);
             return;
-        case NODE_VAR_DECL:
-            if (node->right != NULL) {
-                analisar_semantico(node->right);
-                const char* t_decl = node->var_type;
-                const char* t_init = inferir_tipo(node->right);
-                if (t_decl != NULL && t_init != NULL && strcmp(t_init, "invalido") != 0) {
-                    TipoRank r_decl = obter_rank(t_decl);
-                    TipoRank r_init = obter_rank(t_init);
-                    if (r_init > r_decl && r_decl != TIPO_INVALIDO)
-                        fprintf(stderr, "Aviso Semantico na linha %d: Atribuicao com possivel perda de precisao: '%s' atribuido a variavel do tipo '%s'.\n",
-                            yylineno, t_init, t_decl);
-                }
-            }
-            break;
-        case NODE_ASSIGN:
-            analisar_semantico(node->right);
-            if (node->value != NULL) {
-                Simbolo* s = buscar(node->value);
-                if (s != NULL) {
-                    const char* t_var  = s->tipo;
-                    const char* t_expr = inferir_tipo(node->right);
-                    if (t_expr != NULL && strcmp(t_expr, "invalido") != 0) {
-                        TipoRank r_var  = obter_rank(t_var);
-                        TipoRank r_expr = obter_rank(t_expr);
-                        if (r_expr > r_var && r_var != TIPO_INVALIDO)
-                            fprintf(stderr, "Aviso Semantico na linha %d: Atribuicao com possivel perda de precisao: '%s' atribuido a variavel '%s' do tipo '%s'.\n",
-                                yylineno, t_expr, node->value, t_var);
-                    }
-                }
-            }
-            break;
+        
         case NODE_BINARY_OP:
             analisar_semantico(node->left);
             analisar_semantico(node->right);
@@ -316,4 +286,22 @@ void checar_operacao_binaria_parser(const char* op,
     if (strcmp(t_esq, "invalido") == 0 || strcmp(t_dir, "invalido") == 0)
         return;
     checar_operacao_binaria(op, t_esq, t_dir, linha);
+}
+
+void checar_atribuicao_parser(char* nome, ASTNode* expr, int linha) {
+    if (nome == NULL || expr == NULL) return;
+
+    Simbolo* s = buscar(nome);
+    if (s == NULL) return;
+
+    const char* t_var  = s->tipo;
+    const char* t_expr = inferir_tipo_live(expr);
+    if (t_var == NULL || t_expr == NULL || strcmp(t_expr, "invalido") == 0)
+        return;
+
+    TipoRank r_var  = obter_rank(t_var);
+    TipoRank r_expr = obter_rank(t_expr);
+    if (r_expr > r_var && r_var != TIPO_INVALIDO)
+        fprintf(stderr, "Aviso Semantico na linha %d: Atribuicao com possivel perda de precisao: '%s' atribuido a variavel '%s' do tipo '%s'.\n",
+            linha, t_expr, nome, t_var);
 }
