@@ -265,6 +265,7 @@ atribuicao:
                 $1);
             exit(1);
         }
+        checar_atribuicao_parser($1, $3, yylineno);
         $$ = create_assign_node($1, "=", $3);
     }
 
@@ -274,6 +275,7 @@ atribuicao:
             fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
             exit(1);
         }
+        checar_atribuicao_parser($1, $3, yylineno);
         $$ = create_assign_node($1, "+=", $3);
     }
     | ID SUB_ATRIB expressao PONTO_VIRGULA { 
@@ -281,6 +283,7 @@ atribuicao:
             fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
             exit(1);
         }
+        checar_atribuicao_parser($1, $3, yylineno);
         $$ = create_assign_node($1, "-=", $3); 
     }
     | ID MULT_ATRIB expressao PONTO_VIRGULA {
@@ -288,6 +291,7 @@ atribuicao:
             fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
             exit(1);
         }
+        checar_atribuicao_parser($1, $3, yylineno);
         $$ = create_assign_node($1, "*=", $3);
     }
     | ID DIV_ATRIB expressao PONTO_VIRGULA {
@@ -295,6 +299,7 @@ atribuicao:
             fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
             exit(1);
         }
+        checar_atribuicao_parser($1, $3, yylineno);
         $$ = create_assign_node($1, "/=", $3);
     }
     | ID MOD_ATRIB expressao PONTO_VIRGULA {
@@ -302,6 +307,7 @@ atribuicao:
             fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
             exit(1);
         }
+        checar_atribuicao_parser($1, $3, yylineno);
         $$ = create_assign_node($1, "%=", $3);
     }
 

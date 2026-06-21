@@ -23,5 +23,6 @@ const char* inferir_tipo(ASTNode* node);
 const char* promover_tipos(const char* tipo_esq, const char* tipo_dir);
 void checar_operacao_binaria(const char* op, const char* tipo_esq, const char* tipo_dir, int linha);
 void checar_operacao_binaria_parser(const char* op, ASTNode* esq, ASTNode* dir, int linha);
+void checar_atribuicao_parser(char* nome, ASTNode* expr, int linha);
 
 #endif
