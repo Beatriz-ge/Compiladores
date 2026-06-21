@@ -7,3 +7,5 @@ tmp_erros.txt
 .vscode
 tests/saida.py
 coverage_report/
+*.gcov
+*.backup
