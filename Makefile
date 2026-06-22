@@ -16,7 +16,8 @@ OBJS = \
 	$(BUILD)/ast.o \
 	$(BUILD)/indent_manager.o \
 	$(BUILD)/semantic.o \
-	$(BUILD)/tabela_funcoes.o
+	$(BUILD)/tabela_funcoes.o \
+	$(BUILD)/diagnostics.o 
 
 COVERAGE_FLAGS = --coverage -fprofile-arcs -ftest-coverage -O0
 
@@ -92,6 +93,10 @@ $(BUILD)/semantic.o: $(SRC)/semantic.c $(SRC)/semantic.h
 $(BUILD)/tabela_funcoes.o: $(SRC)/tabela_funcoes.c $(SRC)/tabela_funcoes.h
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -I$(SRC) -c $(SRC)/tabela_funcoes.c -o $@
+
+$(BUILD)/diagnostics.o: $(SRC)/diagnostics.c $(SRC)/diagnostics.h
+	@mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) -I$(SRC) -c $(SRC)/diagnostics.c -o $@
 
 clean:
 	rm -rf $(BUILD) $(BIN)
