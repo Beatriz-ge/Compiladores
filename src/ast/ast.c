@@ -496,12 +496,39 @@ void generate_python(ASTNode* node, int indent_level) {
             printf(")\n");
             break;
 
-        case NODE_SCANF:
+                case NODE_SCANF:
             indent_print(indent_level);
             printf("%s = input()\n", node->value);
             break;
+
+        case NODE_STRUCT: {
+            indent_print(indent_level);
+            printf("class %s:\n", node->value);
+
+            indent_print(indent_level + 1);
+            printf("def __init__(self):\n");
+
+            if (node->var_type == NULL || strlen(node->var_type) == 0) {
+                indent_print(indent_level + 2);
+                printf("pass\n");
+            } else {
+                char* campos = strdup(node->var_type);
+                char* campo = strtok(campos, "\n");
+
+                while (campo != NULL) {
+                    indent_print(indent_level + 2);
+                    printf("self.%s = None\n", campo);
+                    campo = strtok(NULL, "\n");
+                }
+
+                free(campos);
+            }
+
+            printf("\n");
+            break;
+        }
     }
-} 
+}
 
 const char* get_node_type_name(NodeType type) {
     switch (type) {
@@ -534,7 +561,8 @@ const char* get_node_type_name(NodeType type) {
         case NODE_ARRAY_ASSIGN_V2:    return "MULTI_ARRAY_ASSIGN";
         case NODE_PRINTF: return "PRINTF";
         case NODE_SCANF:  return "SCANF";
-        default:            return "UNKNOWN";
+        case NODE_STRUCT: return "STRUCT";
+        default:          return "UNKNOWN";
     }
 }
 
@@ -685,5 +713,14 @@ ASTNode* create_printf_node(ASTNode* expr) {
 ASTNode* create_scanf_node(char* var) {
     ASTNode* node = allocate_node(NODE_SCANF);
     node->value = strdup(var);
+    return node;
+}
+
+ASTNode* create_struct_node(char* nome, char* campos) {
+    ASTNode* node = allocate_node(NODE_STRUCT);
+
+    node->value = nome ? strdup(nome) : NULL;
+    node->var_type = campos ? strdup(campos) : NULL;
+
     return node;
 }
