@@ -10,9 +10,56 @@ ASTNode* global_ast_root = NULL;
 
 int indent = 0;
 
+static char* struct_atual_semantica = NULL;
+
 void print_indent(void) {
     for (int i = 0; i < indent; i++) {
         printf("    ");
+    }
+}
+
+static void iniciar_struct_semantica(const char* nome_struct) {
+    if (buscar((char*)nome_struct) != NULL) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Struct '%s' ja declarada.", nome_struct);
+        emitir_erro_semantico(yylineno, msg);
+        exit(1);
+    }
+
+    inserir((char*)nome_struct, "struct", yylineno);
+
+    if (struct_atual_semantica != NULL) {
+        free(struct_atual_semantica);
+    }
+
+    struct_atual_semantica = strdup(nome_struct);
+}
+
+static void registrar_campo_struct_semantica(const char* tipo_campo, const char* nome_campo) {
+    if (struct_atual_semantica == NULL) {
+        emitir_erro_semantico(yylineno, "Campo de struct declarado fora de uma struct.");
+        exit(1);
+    }
+
+    char* nome_completo = NULL;
+    asprintf(&nome_completo, "%s.%s", struct_atual_semantica, nome_campo);
+
+    if (buscar(nome_completo) != NULL) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Campo '%s' ja declarado na struct '%s'.", nome_campo, struct_atual_semantica);
+        emitir_erro_semantico(yylineno, msg);
+        free(nome_completo);
+        exit(1);
+    }
+
+    inserir(nome_completo, (char*)tipo_campo, yylineno);
+    free(nome_completo);
+}
+
+static void finalizar_struct_semantica(void) {
+    if (struct_atual_semantica != NULL) {
+        free(struct_atual_semantica);
+        struct_atual_semantica = NULL;
     }
 }
 %}
@@ -64,7 +111,7 @@ void print_indent(void) {
 
 %token BIT_AND
 
-%type <str> comentario argumentos tipo parametro parametros
+%type <str> comentario argumentos tipo parametro parametros campos_struct campo_struct
 %type <node> program funcao bloco bloco_da_funcao lista_comandos comando declaracao atribuicao selecao retorno expressao definicao_struct elemento_programa chamada_funcao
 %type <node> for_init for_cond for_incr
 %type <node> lista_init declaracao_array acesso_array
@@ -92,6 +139,7 @@ void print_indent(void) {
 elemento_programa:
       funcao { $$ = $1; }
     | declaracao { $$ = $1; }
+    | definicao_struct { $$ = $1; }
     | MAIN APARENTESE FPARENTESE bloco { 
           inserir("main", "int", yylineno); 
           $$ = create_func_node("int", "main", "", $4); 
@@ -198,6 +246,15 @@ tipo:
     | DOUBLE { $$ = "double"; }
     | VOID   { $$ = "void"; }
     | STRUCT ID {
+        Simbolo* s = buscar($2);
+
+        if (s == NULL || strcmp(s->tipo, "struct") != 0) {
+            char msg[256];
+            snprintf(msg, sizeof(msg), "Struct '%s' nao declarada.", $2);
+            emitir_erro_semantico(yylineno, msg);
+            exit(1);
+        }
+
         asprintf(&$$, "struct %s", $2);
     }
 ;
@@ -377,8 +434,27 @@ comentario:
 ;
 
 definicao_struct:
-    STRUCT ID ACHAVE lista_comandos FCHAVE PONTO_VIRGULA {
-        $$ = NULL; 
+    STRUCT ID {
+        iniciar_struct_semantica($2);
+    } ACHAVE campos_struct FCHAVE PONTO_VIRGULA {
+        $$ = create_struct_node($2, $5);
+        finalizar_struct_semantica();
+    }
+;
+
+campos_struct:
+      campo_struct {
+          $$ = $1;
+      }
+    | campos_struct campo_struct {
+          asprintf(&$$, "%s\n%s", $1, $2);
+      }
+;
+
+campo_struct:
+    tipo ID PONTO_VIRGULA {
+        registrar_campo_struct_semantica($1, $2);
+        asprintf(&$$, "%s", $2);
     }
 ;
 
