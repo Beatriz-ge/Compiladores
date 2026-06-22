@@ -1,4 +1,5 @@
 #include "semantic.h"
+#include "diagnostics.h" /* <- ADICIONADO PARA USAR O SISTEMA DE DIAGNÓSTICO */
 
 static TipoRank obter_rank(const char* tipo) {
     if (tipo == NULL)             return TIPO_INVALIDO;
@@ -129,10 +130,12 @@ void checar_operacao_binaria(const char* op,
                              const char* tipo_esq,
                              const char* tipo_dir,
                              int linha) {
+    char msg[512];
+
     if (strcmp(op, "&&") == 0 || strcmp(op, "||") == 0) {
         if (!e_tipo_escalar(tipo_esq) || !e_tipo_escalar(tipo_dir)) {
-            fprintf(stderr, "Erro Semantico na linha %d: Operador '%s' nao pode ser aplicado entre '%s' e '%s'.\n",
-                linha, op, tipo_esq, tipo_dir);
+            snprintf(msg, sizeof(msg), "Operador '%s' nao pode ser aplicado entre '%s' e '%s'.", op, tipo_esq, tipo_dir);
+            emitir_erro_semantico(linha, msg);
             exit(1);
         }
         return;
@@ -141,16 +144,16 @@ void checar_operacao_binaria(const char* op,
         strcmp(op, "<")  == 0 || strcmp(op, ">")  == 0 ||
         strcmp(op, "<=") == 0 || strcmp(op, ">=") == 0) {
         if (!e_tipo_escalar(tipo_esq) || !e_tipo_escalar(tipo_dir)) {
-            fprintf(stderr, "Erro Semantico na linha %d: Comparacao '%s' invalida entre '%s' e '%s'.\n",
-                linha, op, tipo_esq, tipo_dir);
+            snprintf(msg, sizeof(msg), "Comparacao '%s' invalida entre '%s' e '%s'.", op, tipo_esq, tipo_dir);
+            emitir_erro_semantico(linha, msg);
             exit(1);
         }
         return;
     }
     if (strcmp(op, "%") == 0) {
         if (!e_tipo_inteiro(tipo_esq) || !e_tipo_inteiro(tipo_dir)) {
-            fprintf(stderr, "Erro Semantico na linha %d: Operador '%%' requer operandos inteiros, mas recebeu '%s' e '%s'.\n",
-                linha, tipo_esq, tipo_dir);
+            snprintf(msg, sizeof(msg), "Operador '%%' requer operandos inteiros, mas recebeu '%s' e '%s'.", tipo_esq, tipo_dir);
+            emitir_erro_semantico(linha, msg);
             exit(1);
         }
         return;
@@ -158,19 +161,21 @@ void checar_operacao_binaria(const char* op,
     const char* tipo_result = promover_tipos(tipo_esq, tipo_dir);
     if (tipo_result == NULL) {
         if (strncmp(tipo_esq, "struct", 6) == 0 || strncmp(tipo_dir, "struct", 6) == 0)
-            fprintf(stderr, "Erro Semantico na linha %d: Operacao aritmetica '%s' invalida: tipo struct nao suporta aritmetica.\n", linha, op);
+            snprintf(msg, sizeof(msg), "Operacao aritmetica '%s' invalida: tipo struct nao suporta aritmetica.", op);
         else if (strcmp(tipo_esq, "void") == 0 || strcmp(tipo_dir, "void") == 0)
-            fprintf(stderr, "Erro Semantico na linha %d: Operacao '%s' invalida: tipo 'void' nao pode ser operando.\n", linha, op);
+            snprintf(msg, sizeof(msg), "Operacao '%s' invalida: tipo 'void' nao pode ser operando.", op);
         else
-            fprintf(stderr, "Erro Semantico na linha %d: Operacao '%s' invalida entre os tipos '%s' e '%s'.\n",
-                linha, op, tipo_esq, tipo_dir);
+            snprintf(msg, sizeof(msg), "Operacao '%s' invalida entre os tipos '%s' e '%s'.", op, tipo_esq, tipo_dir);
+        
+        emitir_erro_semantico(linha, msg);
         exit(1);
     }
     if (strcmp(tipo_esq, tipo_dir) != 0 && strcmp(tipo_result, "ponteiro") != 0) {
-        fprintf(stderr, "Aviso Semantico na linha %d: Coercao implicita em '%s': '%s' promovido para '%s'.\n",
-            linha, op,
+        snprintf(msg, sizeof(msg), "Coercao implicita em '%s': '%s' promovido para '%s'.",
+            op,
             (obter_rank(tipo_esq) < obter_rank(tipo_dir)) ? tipo_esq : tipo_dir,
             tipo_result);
+        emitir_aviso(linha, msg);
     }
 }
 
@@ -247,10 +252,6 @@ void analisar_semantico(ASTNode* node) {
     if (node->next != NULL) analisar_semantico(node->next);
 }
 
-/* ============================================================
- *  SEÇÃO 6 — CHECAGEM DURANTE O PARSE (tabela ainda ativa)
- * ============================================================ */
-
 static const char* inferir_tipo_live(ASTNode* node) {
     if (node == NULL) return "invalido";
     if (node->var_type != NULL && strlen(node->var_type) > 0)
@@ -301,7 +302,9 @@ void checar_atribuicao_parser(char* nome, ASTNode* expr, int linha) {
 
     TipoRank r_var  = obter_rank(t_var);
     TipoRank r_expr = obter_rank(t_expr);
-    if (r_expr > r_var && r_var != TIPO_INVALIDO)
-        fprintf(stderr, "Aviso Semantico na linha %d: Atribuicao com possivel perda de precisao: '%s' atribuido a variavel '%s' do tipo '%s'.\n",
-            linha, t_expr, nome, t_var);
+    if (r_expr > r_var && r_var != TIPO_INVALIDO) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Atribuicao com possivel perda de precisao: '%s' atribuido a variavel '%s' do tipo '%s'.", t_expr, nome, t_var);
+        emitir_aviso(linha, msg);
+    }
 }

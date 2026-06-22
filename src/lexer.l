@@ -7,6 +7,7 @@
 #include "parser.tab.h"
 #include "common.h"
 #include "tabela.h"
+#include "diagnostics.h"
 %}
 
 DIGITO      [0-9]
@@ -94,19 +95,25 @@ ESCAPE      \\[ntr0"'\\]
 "%"         { return MOD; }
 "&"         { return BIT_AND; }
 
+
 \"([^\"\\\n]|\\.)*\n {
     yylineno--;
-    fprintf(stderr, "Erro Lexico na linha %d: string nao fechada\n", yylineno);
+    char msg[512];
+    if (yytext[strlen(yytext)-1] == '\n') yytext[strlen(yytext)-1] = '\0';
+    snprintf(msg, sizeof(msg), "String nao fechada com aspas antes do fim da linha.\nTexto encontrado: %s", yytext);
+    emitir_erro_lexico(yylineno, msg);
     exit(1);
 }
 
 \"([^\"\\\n]|{ESCAPE})*\\[^ntr0\"\'\\][^\"\n]*\" {
-
-    fprintf(stderr, "Erro Lexico na linha %d: escape invalido em string\n", yylineno);
+    char msg[512];
+    snprintf(msg, sizeof(msg), "Sequencia de escape invalida dentro da string.\nTexto encontrado: %s", yytext);
+    emitir_erro_lexico(yylineno, msg);
     exit(1);
 }
 
 \"([^\"\\\n]|{ESCAPE})*\" {
+    /* REGRA DE SUCESSO DA STRING - MANTIDA! */
     int len = strlen(yytext);
     yylval.str = (char*) malloc(len - 1);
     memcpy(yylval.str, yytext + 1, len - 2);
@@ -116,17 +123,22 @@ ESCAPE      \\[ntr0"'\\]
 
 \'([^\'\\]|\\.)?\n {
     yylineno--;
-    fprintf(stderr, "Erro Lexico na linha %d: char nao fechado\n", yylineno);
+    char msg[512];
+    if (yytext[strlen(yytext)-1] == '\n') yytext[strlen(yytext)-1] = '\0';
+    snprintf(msg, sizeof(msg), "Constante de caractere (char) nao fechada antes do fim da linha.\nTexto encontrado: %s", yytext);
+    emitir_erro_lexico(yylineno, msg);
     exit(1);
 }
 
 \'\\[^ntr0\'\\]\' {
-
-    fprintf(stderr, "Erro Lexico na linha %d: escape invalido em char\n", yylineno);
+    char msg[512];
+    snprintf(msg, sizeof(msg), "Sequencia de escape invalida dentro do char.\nTexto encontrado: %s", yytext);
+    emitir_erro_lexico(yylineno, msg);
     exit(1);
 }
 
 \'([^\'\\]|{ESCAPE})\' {
+    /* REGRA DE SUCESSO DO CHAR - MANTIDA! */
     int len = strlen(yytext);
     yylval.str = (char*) malloc(len - 1);
     memcpy(yylval.str, yytext + 1, len - 2);
@@ -135,7 +147,9 @@ ESCAPE      \\[ntr0"'\\]
 }
 
 \'([^\'\\]|\\.){2,}\' {
-    fprintf(stderr, "Erro Lexico na linha %d: char invalido\n", yylineno);
+    char msg[512];
+    snprintf(msg, sizeof(msg), "Constante de caractere invalida (char deve conter apenas 1 caractere).\nTexto encontrado: %s", yytext);
+    emitir_erro_lexico(yylineno, msg);
     exit(1);
 }
 
@@ -144,7 +158,9 @@ ESCAPE      \\[ntr0"'\\]
 {ID}        { yylval.str = strdup(yytext); return ID; }
 
 . {
-    fprintf(stderr, "Erro lexico na linha %d: '%s'\n", yylineno, yytext);
+    char msg[256];
+    snprintf(msg, sizeof(msg), "Caractere desconhecido/invalido que nao pertence a linguagem C.\nTexto encontrado: %s", yytext);
+    emitir_erro_lexico(yylineno, msg);
     exit(1);
 }
 
