@@ -30,6 +30,8 @@ ESCAPE      \\[ntr0"'\\]
     return COMMENT_BLOCK;
 }
 
+"#include"[ \t]*"<string.h>"    { return INCLUDE_STRING_H; }
+
 "main"      { return MAIN; }
 "int"       { return INT; }
 "float"     { return FLOAT; }
