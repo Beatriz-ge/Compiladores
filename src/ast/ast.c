@@ -4,12 +4,11 @@
 #include "tabela.h"
 
 static ASTNode* current_loop_incr = NULL;
+static void generate_while(ASTNode* node, int indent_level);
+static void generate_for(ASTNode* node, int indent_level);
+static void generate_if(ASTNode* node, int indent_level);
 
-//void indent_print(int level) {
-//    for (int i = 0; i < level; i++) {
-//        printf("    ");
-//    }
-// }
+
 
 ASTNode* allocate_node(NodeType type) {
     ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
@@ -231,20 +230,9 @@ void generate_python(ASTNode* node, int indent_level) {
             printf(")");
             break;
 
-        case NODE_WHILE: {
-            indent_print(indent_level);
-            printf("while ");
-            generate_python(node->left, 0);
-            printf(":\n");
-
-            ASTNode* prev_incr = current_loop_incr;
-            current_loop_incr = NULL;
-
-            generate_python(node->right, indent_level + 1);
-
-            current_loop_incr = prev_incr;
+        case NODE_WHILE:
+            generate_while(node, indent_level);
             break;
-        }
 
         case NODE_BREAK:
             indent_print(indent_level);
@@ -259,46 +247,9 @@ void generate_python(ASTNode* node, int indent_level) {
             printf("continue\n");
             break;
 
-        case NODE_FOR: {
-            ASTNode* header = node->left;
-            ASTNode* execution = node->right;
-            ASTNode* init = header ? header->left : NULL;
-            ASTNode* cond = header ? header->right : NULL;
-            ASTNode* incr = execution ? execution->left : NULL;
-            ASTNode* body = execution ? execution->right : NULL;
-
-            if (init) {
-                generate_python(init, indent_level);
-            }
-            
-            indent_print(indent_level);
-            printf("while ");
-            if (cond) {
-                generate_python(cond, 0);
-            } else {
-                printf("True");
-            }
-            printf(":\n");
-
-            ASTNode* prev_incr = current_loop_incr;
-            current_loop_incr = incr;
-
-            if (body) {
-                generate_python(body, indent_level + 1);
-            }
-            
-            current_loop_incr = prev_incr;
-
-            if (incr) {
-                generate_python(incr, indent_level + 1);
-            }
-            
-            if (!body && !incr) {
-                indent_print(indent_level + 1);
-                printf("pass\n");
-            }
+        case NODE_FOR:
+            generate_for(node, indent_level);
             break;
-        }
 
         case NODE_LITERAL:
         case NODE_ID:
@@ -326,44 +277,9 @@ void generate_python(ASTNode* node, int indent_level) {
             generate_python(node->left, 0);
             break;
 
-        case NODE_IF: {
-
-            indent_print(indent_level);
-            printf("if ");
-            generate_python(node->left, 0);
-            printf(":\n");
-
-            ASTNode* branches = node->right;
-            if (branches) {
-                generate_python(branches->left, indent_level + 1);
-
-                ASTNode* else_branch = branches->right;
-                while (else_branch != NULL) {
-                    if (else_branch->type == NODE_IF) {
-                        /* else if -> elif */
-                        indent_print(indent_level);
-                        printf("elif ");
-                        generate_python(else_branch->left, 0);
-                        printf(":\n");
-
-                        ASTNode* elif_branches = else_branch->right;
-                        if (elif_branches) {
-                            generate_python(elif_branches->left, indent_level + 1);
-                            else_branch = elif_branches->right;
-                        } else {
-                            else_branch = NULL;
-                        }
-                    } else {
-                        
-                        indent_print(indent_level);
-                        printf("else:\n");
-                        generate_python(else_branch, indent_level + 1);
-                        else_branch = NULL;
-                    }
-                }
-            }
+        case NODE_IF:
+            generate_if(node, indent_level);
             break;
-        }
 
         case NODE_ARRAY_DECL:
             indent_print(indent_level);
@@ -728,4 +644,110 @@ ASTNode* create_struct_node(char* nome, char* campos) {
     node->var_type = campos ? strdup(campos) : NULL;
 
     return node;
+}
+
+static void generate_while(ASTNode* node, int indent_level)
+{
+    indent_print(indent_level);
+    printf("while ");
+    generate_python(node->left, 0);
+    printf(":\n");
+
+    ASTNode* prev_incr = current_loop_incr;
+    current_loop_incr = NULL;
+
+    generate_python(node->right, indent_level + 1);
+
+    current_loop_incr = prev_incr;
+}
+
+static void generate_for(ASTNode* node, int indent_level)
+{
+    ASTNode* header = node->left;
+    ASTNode* execution = node->right;
+
+    ASTNode* init = header ? header->left : NULL;
+    ASTNode* cond = header ? header->right : NULL;
+    ASTNode* incr = execution ? execution->left : NULL;
+    ASTNode* body = execution ? execution->right : NULL;
+
+    if (init)
+        generate_python(init, indent_level);
+
+    indent_print(indent_level);
+    printf("while ");
+
+    if (cond)
+        generate_python(cond, 0);
+    else
+        printf("True");
+
+    printf(":\n");
+
+    ASTNode* prev_incr = current_loop_incr;
+    current_loop_incr = incr;
+
+    if (body)
+        generate_python(body, indent_level + 1);
+
+    current_loop_incr = prev_incr;
+
+    if (incr)
+        generate_python(incr, indent_level + 1);
+
+    if (!body && !incr) {
+        indent_print(indent_level + 1);
+        printf("pass\n");
+    }
+}
+static void generate_if(ASTNode* node, int indent_level)
+{
+    indent_print(indent_level);
+    printf("if ");
+    generate_python(node->left, 0);
+    printf(":\n");
+
+    ASTNode* branches = node->right;
+
+    if (!branches)
+        return;
+
+    generate_python(branches->left, indent_level + 1);
+
+    ASTNode* else_branch = branches->right;
+
+    while (else_branch) {
+
+        if (else_branch->type == NODE_IF) {
+
+            indent_print(indent_level);
+            printf("elif ");
+            generate_python(else_branch->left, 0);
+            printf(":\n");
+
+            ASTNode* elif_branches = else_branch->right;
+
+            if (elif_branches) {
+                generate_python(
+                    elif_branches->left,
+                    indent_level + 1
+                );
+                else_branch = elif_branches->right;
+            } else {
+                else_branch = NULL;
+            }
+
+        } else {
+
+            indent_print(indent_level);
+            printf("else:\n");
+
+            generate_python(
+                else_branch,
+                indent_level + 1
+            );
+
+            else_branch = NULL;
+        }
+    }
 }
