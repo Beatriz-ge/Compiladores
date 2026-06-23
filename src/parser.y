@@ -353,6 +353,34 @@ static ASTNode* criar_comando_string_builtin(const char* nome, const char* argum
 
     return resultado;
 }
+static char* serializar_expr_para_python(ASTNode* node) {
+    if (!node) return strdup("");
+
+    switch (node->type) {
+        case NODE_ADDRESS: {
+            // &x → [x]
+            char* inner = serializar_expr_para_python(node->left);
+            char* resultado = NULL;
+            asprintf(&resultado, "[%s]", inner);
+            free(inner);
+            return resultado;
+        }
+        case NODE_DEREF: {
+            // *x → x[0]
+            char* inner = serializar_expr_para_python(node->left);
+            char* resultado = NULL;
+            asprintf(&resultado, "%s[0]", inner);
+            free(inner);
+            return resultado;
+        }
+        case NODE_LITERAL:
+        case NODE_ID:
+            return strdup(node->value ? node->value : "");
+        default:
+            // Outros casos (binary_op etc.) já têm value montado pelo parser
+            return strdup(node->value ? node->value : "");
+    }
+}
 %}
 
 %define parse.error verbose
@@ -572,6 +600,18 @@ parametros:
 parametro:
     tipo ID {
         inserir($2, $1, yylineno);
+        $$ = strdup($2);
+    }
+    | tipo MULT ID {
+        inserir_ponteiro($3, $1, yylineno);
+        $$ = strdup($3);
+    }
+    | tipo ID A_COLCHETE F_COLCHETE {
+        inserir_array($2, $1, 0, yylineno);
+        $$ = strdup($2);
+    }
+    | tipo ID A_COLCHETE NUM F_COLCHETE {
+        inserir_array($2, $1, atoi($4), yylineno);
         $$ = strdup($2);
     }
 ;
@@ -871,10 +911,12 @@ argumentos:
         $$ = strdup("");
     }
     | expressao { 
-          $$ = strdup($1 && $1->value ? $1->value : ""); 
+          $$ = serializar_expr_para_python($1); 
       }
     | argumentos VIRGULA expressao { 
-          asprintf(&$$, "%s, %s", $1, ($3 && $3->value ? $3->value : "")); 
+          char* arg = serializar_expr_para_python($3);
+          asprintf(&$$, "%s, %s", $1, arg);
+          free(arg);; 
       }
 ;
 
