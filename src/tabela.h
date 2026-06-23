@@ -39,5 +39,6 @@ void imprimir_historico_completo();
 void imprimir_tabela();
 
 int simbolo_e_global(char *nome);
+int simbolo_pertence_ao_global(Simbolo *s);
 
 #endif

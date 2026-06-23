@@ -161,6 +161,29 @@ int simbolo_e_global(char *nome)
     return 0;
 }
 
+int simbolo_pertence_ao_global(Simbolo *s)
+{
+    if (!s || !escopo_atual)
+        return 0;
+
+    Escopo *global = escopo_atual;
+
+    while (global->escopo_pai)
+        global = global->escopo_pai;
+
+    Simbolo *atual = global->lista_simbolos;
+
+    while (atual)
+    {
+        if (atual == s)
+            return 1;
+
+        atual = atual->proximo;
+    }
+
+    return 0;
+}
+
 static const char *categoria_str(TipoSimbolo cat, int tamanho, char *buf, int buf_sz) {
     switch (cat) {
         case SIM_VAR:     return "variavel"; 
@@ -218,3 +241,4 @@ void imprimir_historico_completo() {
     
     fprintf(stderr, "--------------------------------------------------\n\n");
 }
+
