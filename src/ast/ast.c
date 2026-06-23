@@ -20,6 +20,9 @@ ASTNode* allocate_node(NodeType type) {
     node->value = NULL;
     node->var_type = NULL;
     node->array_size = 0;
+    node->simbolo = NULL;
+    node->eh_global = 0;
+
     node->left = NULL;
     node->right = NULL;
     node->next = NULL;
@@ -48,9 +51,20 @@ ASTNode* create_binary_op_node(char* op, ASTNode* left, ASTNode* right) {
 
 ASTNode* create_assign_node(char* id, char* op, ASTNode* expr) {
     ASTNode* node = allocate_node(NODE_ASSIGN);
+
     node->value = strdup(id);
     node->var_type = strdup(op);
     node->left = expr;
+
+    node->eh_global = simbolo_e_global(id)
+                  && buscar_local(id) == NULL;
+
+    if (node->simbolo)
+    {
+        node->eh_global =
+            simbolo_pertence_ao_global(node->simbolo);
+    }
+
     return node;
 }
 
@@ -164,7 +178,7 @@ static void coletar_globais_modificadas(
 
     if (node->type == NODE_ASSIGN)
     {
-        if (simbolo_e_global(node->value))
+        if (node->eh_global)
         {
             int existe = 0;
 

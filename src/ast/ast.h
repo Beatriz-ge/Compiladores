@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "tabela.h"
 
 typedef enum {
     NODE_PROGRAM,
@@ -44,6 +45,9 @@ typedef struct ASTNode {
     char* value;       
     char* var_type;    
     int   array_size;
+
+    Simbolo *simbolo;
+    int eh_global;
 
     struct ASTNode* left;
     struct ASTNode* right;
