@@ -153,6 +153,43 @@ ASTNode* create_deref_node(ASTNode* operand) {
     return node;
 }
 
+static void coletar_globais_modificadas(
+    ASTNode *node,
+    char nomes[][128],
+    int *count
+)
+{
+    if (!node)
+        return;
+
+    if (node->type == NODE_ASSIGN)
+    {
+        if (simbolo_e_global(node->value))
+        {
+            int existe = 0;
+
+            for (int i = 0; i < *count; i++)
+            {
+                if (strcmp(nomes[i], node->value) == 0)
+                {
+                    existe = 1;
+                    break;
+                }
+            }
+
+            if (!existe)
+            {
+                strcpy(nomes[*count], node->value);
+                (*count)++;
+            }
+        }
+    }
+
+    coletar_globais_modificadas(node->left, nomes, count);
+    coletar_globais_modificadas(node->right, nomes, count);
+    coletar_globais_modificadas(node->next, nomes, count);
+}
+
 void generate_python(ASTNode* node, int indent_level) {
     if (!node) return;
 
@@ -163,11 +200,37 @@ void generate_python(ASTNode* node, int indent_level) {
             break;
 
         case NODE_FUNC:
+        {
             indent_print(indent_level);
-            printf("def %s(%s):\n", node->value,
-                node->next ? (char*)node->next : "");
-            generate_python(node->left, indent_level + 1);
+
+            printf(
+                "def %s(%s):\n",
+                node->value,
+                node->next ? (char*)node->next : ""
+            );
+
+            char globais[100][128];
+            int qtd_globais = 0;
+
+            coletar_globais_modificadas(
+                node->left,
+                globais,
+                &qtd_globais
+            );
+
+            for (int i = 0; i < qtd_globais; i++)
+            {
+                indent_print(indent_level + 1);
+                printf("global %s\n", globais[i]);
+            }
+
+            generate_python(
+                node->left,
+                indent_level + 1
+            );
+
             break;
+}
 
         case NODE_BLOCK:
             if (node->left == NULL) {
