@@ -302,7 +302,12 @@ void generate_python(ASTNode* node, int indent_level) {
 
         case NODE_LITERAL:
         case NODE_ID:
-            printf("%s", node->value);
+            if (indent_level > 0) {
+                indent_print(indent_level);
+                printf("%s\n", node->value);
+            } else {
+                printf("%s", node->value);
+            }
             break;
 
         case NODE_RETURN:
