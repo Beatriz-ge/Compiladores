@@ -19,6 +19,29 @@ int indent = 0;
 
 static char* struct_atual_semantica = NULL;
 static int string_h_incluido = 0;
+static int profundidade_laco = 0;
+
+/* =========================================================
+   FUNÇÕES AUXILIARES SEMÂNTICAS
+   ========================================================= */
+
+static void exigir_variavel_declarada(const char* nome) {
+    if (buscar((char*)nome) == NULL) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Variavel '%s' nao declarada.", nome);
+        emitir_erro_semantico(yylineno, msg);
+        exit(1);
+    }
+}
+
+static void exigir_comando_dentro_de_laco(const char* comando) {
+    if (profundidade_laco <= 0) {
+        char msg[256];
+        snprintf(msg, sizeof(msg), "Comando '%s' usado fora de um laco.", comando);
+        emitir_erro_semantico(yylineno, msg);
+        exit(1);
+    }
+}
 
 void print_indent(void) {
     for (int i = 0; i < indent; i++) {
@@ -353,31 +376,34 @@ static ASTNode* criar_comando_string_builtin(const char* nome, const char* argum
 
     return resultado;
 }
+
 static char* serializar_expr_para_python(ASTNode* node) {
-    if (!node) return strdup("");
+    if (!node) {
+        return strdup("");
+    }
 
     switch (node->type) {
         case NODE_ADDRESS: {
-            // &x → [x]
             char* inner = serializar_expr_para_python(node->left);
             char* resultado = NULL;
             asprintf(&resultado, "[%s]", inner);
             free(inner);
             return resultado;
         }
+
         case NODE_DEREF: {
-            // *x → x[0]
             char* inner = serializar_expr_para_python(node->left);
             char* resultado = NULL;
             asprintf(&resultado, "%s[0]", inner);
             free(inner);
             return resultado;
         }
+
         case NODE_LITERAL:
         case NODE_ID:
             return strdup(node->value ? node->value : "");
+
         default:
-            // Outros casos (binary_op etc.) já têm value montado pelo parser
             return strdup(node->value ? node->value : "");
     }
 }
@@ -521,12 +547,16 @@ comando:
       declaracao         { $$ = $1; }
     | atribuicao         { $$ = $1; }
     | selecao            { $$ = $1; }
+
     | PRINTF APARENTESE expressao FPARENTESE PONTO_VIRGULA {
           $$ = create_printf_node($3);
       }
+
     | SCANF APARENTESE STR_LITERAL VIRGULA BIT_AND ID FPARENTESE PONTO_VIRGULA {
+          exigir_variavel_declarada($6);
           $$ = create_scanf_node($6);
       }
+
     | retorno            { $$ = $1; }
     | bloco              { $$ = $1; }
 
@@ -552,20 +582,39 @@ comando:
     | expressao PONTO_VIRGULA {
           $$ = $1;
       }
-    | comentario         { $$ = NULL; } 
-    | definicao_struct   { $$ = NULL; }
-    | WHILE APARENTESE expressao FPARENTESE comando {
-          $$ = create_while_node($3, $5);
+
+    | comentario {
+          $$ = NULL;
       }
+
+    | definicao_struct {
+          $$ = NULL;
+      }
+
+    | WHILE APARENTESE expressao FPARENTESE {
+          profundidade_laco++;
+      } comando {
+          profundidade_laco--;
+          $$ = create_while_node($3, $6);
+      }
+
     | BREAK PONTO_VIRGULA {
+          exigir_comando_dentro_de_laco("break");
           $$ = create_break_node();
       }
+
     | CONTINUE PONTO_VIRGULA {
+          exigir_comando_dentro_de_laco("continue");
           $$ = create_continue_node();
       }
-    | FOR APARENTESE for_init PONTO_VIRGULA for_cond PONTO_VIRGULA for_incr FPARENTESE comando {
-          $$ = create_for_node($3, $5, $7, $9);
+
+    | FOR APARENTESE for_init PONTO_VIRGULA for_cond PONTO_VIRGULA for_incr FPARENTESE {
+          profundidade_laco++;
+      } comando {
+          profundidade_laco--;
+          $$ = create_for_node($3, $5, $7, $10);
       }
+
     | acesso_array ATRIB expressao PONTO_VIRGULA {
           $$ = create_array_assign_node_v2($1, $3);
       }
@@ -598,22 +647,22 @@ parametros:
 ;
 
 parametro:
-    tipo ID {
-        inserir($2, $1, yylineno);
-        $$ = strdup($2);
-    }
+      tipo ID {
+          inserir($2, $1, yylineno);
+          $$ = strdup($2);
+      }
     | tipo MULT ID {
-        inserir_ponteiro($3, $1, yylineno);
-        $$ = strdup($3);
-    }
+          inserir_ponteiro($3, $1, yylineno);
+          $$ = strdup($3);
+      }
     | tipo ID A_COLCHETE F_COLCHETE {
-        inserir_array($2, $1, 0, yylineno);
-        $$ = strdup($2);
-    }
+          inserir_array($2, $1, 0, yylineno);
+          $$ = strdup($2);
+      }
     | tipo ID A_COLCHETE NUM F_COLCHETE {
-        inserir_array($2, $1, atoi($4), yylineno);
-        $$ = strdup($2);
-    }
+          inserir_array($2, $1, atoi($4), yylineno);
+          $$ = strdup($2);
+      }
 ;
 
 modificadores:
@@ -624,29 +673,35 @@ modificadores:
 ;
 
 declaracao:
-    tipo ID PONTO_VIRGULA {
+      tipo ID PONTO_VIRGULA {
           inserir($2, $1, yylineno);
           $$ = create_decl_node($1, $2, NULL);
       }
+
     | tipo ID ATRIB expressao PONTO_VIRGULA {
           inserir($2, $1, yylineno);
           $$ = create_decl_node($1, $2, $4);
       }
+
     | modificadores tipo ID PONTO_VIRGULA {
           inserir($3, $2, yylineno); 
           $$ = create_decl_node($2, $3, NULL);
       }
+
     | modificadores tipo ID ATRIB expressao PONTO_VIRGULA { 
           inserir($3, $2, yylineno); 
           $$ = create_decl_node($2, $3, $5);
       }
+
     | declaracao_array {
           $$ = $1;
       }
+
     | tipo MULT ID PONTO_VIRGULA {
           inserir_ponteiro($3, $1, yylineno);
           $$ = create_pointer_decl_node($1, $3, NULL);
       }
+
     | tipo MULT ID ATRIB BIT_AND expressao PONTO_VIRGULA {
           inserir_ponteiro($3, $1, yylineno);
           $$ = create_pointer_decl_node($1, $3, create_address_node($6));
@@ -655,83 +710,51 @@ declaracao:
 
 atribuicao:
       ID ATRIB expressao PONTO_VIRGULA {
-          if (buscar($1) == NULL) {
-              char msg[256];
-              snprintf(msg, sizeof(msg), "Variavel '%s' nao declarada.", $1);
-              emitir_erro_semantico(yylineno, msg);
-              exit(1);
-          }
+          exigir_variavel_declarada($1);
           checar_atribuicao_parser($1, $3, yylineno);
           $$ = create_assign_node($1, "=", $3);
       }
+
     | ID SOMA_ATRIB expressao PONTO_VIRGULA {
-          if (buscar($1) == NULL) {
-              char msg[256];
-              snprintf(msg, sizeof(msg), "Variavel '%s' nao declarada.", $1);
-              emitir_erro_semantico(yylineno, msg);
-              exit(1);
-          }
+          exigir_variavel_declarada($1);
           checar_atribuicao_parser($1, $3, yylineno);
           $$ = create_assign_node($1, "+=", $3);
       }
+    
     | ID SUB_ATRIB expressao PONTO_VIRGULA { 
-          if (buscar($1) == NULL) {
-              char msg[256];
-              snprintf(msg, sizeof(msg), "Variavel '%s' nao declarada.", $1);
-              emitir_erro_semantico(yylineno, msg);
-              exit(1);
-          }
+          exigir_variavel_declarada($1);
           checar_atribuicao_parser($1, $3, yylineno);
           $$ = create_assign_node($1, "-=", $3); 
       }
+    
     | ID MULT_ATRIB expressao PONTO_VIRGULA {
-          if (buscar($1) == NULL) {
-              char msg[256];
-              snprintf(msg, sizeof(msg), "Variavel '%s' nao declarada.", $1);
-              emitir_erro_semantico(yylineno, msg);
-              exit(1);
-          }
+          exigir_variavel_declarada($1);
           checar_atribuicao_parser($1, $3, yylineno);
           $$ = create_assign_node($1, "*=", $3);
       }
+    
     | ID DIV_ATRIB expressao PONTO_VIRGULA {
-          if (buscar($1) == NULL) {
-              char msg[256];
-              snprintf(msg, sizeof(msg), "Variavel '%s' nao declarada.", $1);
-              emitir_erro_semantico(yylineno, msg);
-              exit(1);
-          }
+          exigir_variavel_declarada($1);
           checar_atribuicao_parser($1, $3, yylineno);
           $$ = create_assign_node($1, "/=", $3);
       }
+    
     | ID MOD_ATRIB expressao PONTO_VIRGULA {
-          if (buscar($1) == NULL) {
-              char msg[256];
-              snprintf(msg, sizeof(msg), "Variavel '%s' nao declarada.", $1);
-              emitir_erro_semantico(yylineno, msg);
-              exit(1);
-          }
+          exigir_variavel_declarada($1);
           checar_atribuicao_parser($1, $3, yylineno);
           $$ = create_assign_node($1, "%=", $3);
       }
+
     | ID INC PONTO_VIRGULA {
-          if (buscar($1) == NULL) { 
-              char msg[256];
-              snprintf(msg, sizeof(msg), "Variavel '%s' nao declarada.", $1);
-              emitir_erro_semantico(yylineno, msg);
-              exit(1); 
-          }
+          exigir_variavel_declarada($1);
           $$ = create_assign_node($1, "+=", create_literal_node("1"));
       }
+
     | ID DEC PONTO_VIRGULA {
-          if (buscar($1) == NULL) { 
-              char msg[256];
-              snprintf(msg, sizeof(msg), "Variavel '%s' nao declarada.", $1);
-              emitir_erro_semantico(yylineno, msg);
-              exit(1); 
-          }
+          exigir_variavel_declarada($1);
           $$ = create_assign_node($1, "-=", create_literal_node("1"));
       }
+
     | MULT ID ATRIB expressao PONTO_VIRGULA {
           Simbolo *s = buscar($2);
           char msg[256];
@@ -741,11 +764,13 @@ atribuicao:
               emitir_erro_semantico(yylineno, msg);
               exit(1);
           }
+
           if (s->categoria != SIM_PONTEIRO) {
               snprintf(msg, sizeof(msg), "'%s' nao e um ponteiro, nao pode ser desreferenciado.", $2);
               emitir_erro_semantico(yylineno, msg);
               exit(1);
           }
+
           $$ = create_pointer_assign_node(create_id_node($2), $4);
       }
 ;
@@ -799,89 +824,108 @@ expressao:
       NUM {
           $$ = create_literal_node($1);
       }
+
     | ID {
-          if (buscar($1) == NULL) {
-              char msg[256];
-              snprintf(msg, sizeof(msg), "Variavel '%s' nao declarada.", $1);
-              emitir_erro_semantico(yylineno, msg);
-              exit(1);
-          }
+          exigir_variavel_declarada($1);
           $$ = create_id_node($1);
       }
+
     | chamada_funcao {
           $$ = $1;
       }
+
     | STR_LITERAL {
           char* literal = NULL;
           asprintf(&literal, "\"%s\"", $1);
           $$ = create_literal_node(literal);
           free(literal);
       }
+
     | CHAR_LITERAL {
           char* literal = NULL;
           asprintf(&literal, "'%s'", $1);
           $$ = create_literal_node(literal);
           free(literal);
       }
+
     | expressao SOMA expressao {
           $$ = create_binary_op_node("+", $1, $3);
           checar_operacao_binaria_parser("+", $1, $3, yylineno);
       }
+
     | expressao SUB expressao {
           $$ = create_binary_op_node("-", $1, $3);
           checar_operacao_binaria_parser("-", $1, $3, yylineno);
       }
+
     | expressao MULT expressao {
           $$ = create_binary_op_node("*", $1, $3);
           checar_operacao_binaria_parser("*", $1, $3, yylineno);
       }
+
     | expressao DIV expressao {
           $$ = create_binary_op_node("/", $1, $3);
           checar_operacao_binaria_parser("/", $1, $3, yylineno);
       }
+
     | expressao MOD expressao {
           $$ = create_binary_op_node("%", $1, $3);
           checar_operacao_binaria_parser("%", $1, $3, yylineno);
       }
+
     | expressao TK_EQ expressao {
           $$ = create_binary_op_node("==", $1, $3);
       }
+
     | expressao TK_NE expressao {
           $$ = create_binary_op_node("!=", $1, $3);
       }
+
     | expressao TK_LE expressao {
           $$ = create_binary_op_node("<=", $1, $3);
       }
+
     | expressao TK_GE expressao {
           $$ = create_binary_op_node(">=", $1, $3);
       }
+
     | expressao TK_LT expressao {
           $$ = create_binary_op_node("<", $1, $3);
       }
+
     | expressao TK_GT expressao {
           $$ = create_binary_op_node(">", $1, $3);
       }
+
     | expressao AND_LOGICO expressao {
           $$ = create_binary_op_node("&&", $1, $3);
       }
+
     | expressao OR_LOGICO expressao {
           $$ = create_binary_op_node("||", $1, $3);
       }
+
     | APARENTESE expressao FPARENTESE {
           $$ = $2;
       }
+
     | NOT expressao {
           $$ = create_unary_op_node("!", $2);
       }
+
     | SUB expressao %prec UMINUS {
           $$ = create_unary_op_node("-", $2);
       }
+
     | acesso_array {
           $$ = $1;
       }
+
     | BIT_AND ID {
+          exigir_variavel_declarada($2);
           $$ = create_address_node(create_id_node($2));
       }
+
     | MULT expressao %prec DEREF {
           $$ = create_deref_node($2);
       }
@@ -916,7 +960,7 @@ argumentos:
     | argumentos VIRGULA expressao { 
           char* arg = serializar_expr_para_python($3);
           asprintf(&$$, "%s, %s", $1, arg);
-          free(arg);; 
+          free(arg);
       }
 ;
 
@@ -924,19 +968,20 @@ for_init:
       {
           $$ = NULL;
       }
+
     | tipo ID {
           inserir($2, $1, yylineno);
           $$ = create_decl_node($1, $2, NULL);
       }
+
     | tipo ID ATRIB expressao {
           inserir($2, $1, yylineno);
           $$ = create_decl_node($1, $2, $4);
       }
+
     | ID ATRIB expressao {
-          if (buscar($1) == NULL) {
-              fprintf(stderr, "Erro Semantico na linha %d: Variavel '%s' nao declarada.\n", yylineno, $1);
-              exit(1);
-          }
+          exigir_variavel_declarada($1);
+          checar_atribuicao_parser($1, $3, yylineno);
           $$ = create_assign_node($1, "=", $3);
       }
 ;
@@ -954,19 +999,32 @@ for_incr:
     {
         $$ = NULL;
     }
+
     | ID ATRIB expressao {
+          exigir_variavel_declarada($1);
+          checar_atribuicao_parser($1, $3, yylineno);
           $$ = create_assign_node($1, "=", $3);
       }
+
     | ID SOMA_ATRIB expressao {
+          exigir_variavel_declarada($1);
+          checar_atribuicao_parser($1, $3, yylineno);
           $$ = create_assign_node($1, "+=", $3);
       }
+
     | ID SUB_ATRIB expressao {
+          exigir_variavel_declarada($1);
+          checar_atribuicao_parser($1, $3, yylineno);
           $$ = create_assign_node($1, "-=", $3);
       }
+
     | ID INC {
+          exigir_variavel_declarada($1);
           $$ = create_assign_node($1, "+=", create_literal_node("1"));
       }
+
     | ID DEC {
+          exigir_variavel_declarada($1);
           $$ = create_assign_node($1, "-=", create_literal_node("1"));
       }
 ;
@@ -976,6 +1034,7 @@ declaracao_array:
           inserir_array($2, $1, 0, yylineno);
           $$ = create_multi_array_decl_node($1, $2, $3, NULL);
       }
+
     | tipo ID lista_dimensoes ATRIB ACHAVE lista_init FCHAVE PONTO_VIRGULA {
           inserir_array($2, $1, 0, yylineno);
           $$ = create_multi_array_decl_node($1, $2, $3, $6);
@@ -986,11 +1045,14 @@ lista_dimensoes:
       A_COLCHETE NUM F_COLCHETE {
           $$ = create_dimension_node(atoi($2), NULL);
       }
+
     | lista_dimensoes A_COLCHETE NUM F_COLCHETE {
           ASTNode* curr = $1;
+
           while (curr->next != NULL) {
               curr = curr->next;
           }
+
           curr->next = create_dimension_node(atoi($3), NULL);
           $$ = $1;
       }
@@ -1002,6 +1064,7 @@ acesso_array:
               fprintf(stderr, "Erro Semantico na linha %d: array '%s' nao declarado.\n", yylineno, $1);
               exit(1);
           }
+
           $$ = create_multi_array_access_node($1, $2);
       }
 ;
@@ -1010,11 +1073,14 @@ lista_indices:
       A_COLCHETE expressao F_COLCHETE {
           $$ = create_index_node($2, NULL);
       }
+
     | lista_indices A_COLCHETE expressao F_COLCHETE {
           ASTNode* curr = $1;
+
           while (curr->next != NULL) {
               curr = curr->next;
           }
+
           curr->next = create_index_node($3, NULL);
           $$ = $1;
       }
@@ -1024,11 +1090,14 @@ lista_init:
       expressao {
           $$ = $1;
       }
+
     | lista_init VIRGULA expressao {
           ASTNode* curr = $1;
+
           while (curr->next != NULL) {
               curr = curr->next;
           }
+
           curr->next = $3;
           $$ = $1;
       }
