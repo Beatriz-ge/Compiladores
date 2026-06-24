@@ -1,17 +1,20 @@
+int x = 10;
+int y = 20;
+
 int main() {
-    int x = 3.5;
-    int y;
-    y = 2.7;
-    int z = 0;
-    z += 1.9;
-    for (int i = 0; i < 3; i = i + 1.5) {
-        z = z + 1;
+
+    int x = 100;
+
+    x = 200;
+
+    y = 300;
+
+    if (y > 0) {
+        x = 400;
+        y = 500;
     }
-    float d = 3.0;
-    y = d;
-    int w = 10;
-    w = w + 1;
-    int k;
-    k = 'a';
-    return 0;
+
+    while (x > 0) {
+        x -= 100;
+    }
 }
